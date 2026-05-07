@@ -1,3 +1,7 @@
+email-composer-backend/bin/
+email-composer-backend/obj/
+email-composer-frontend/dist/
+email-composer-frontend/.angular/
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
