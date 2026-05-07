@@ -1,0 +1,68 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+}
+
+.page {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.composer {
+  width: min(900px, 100%);
+  display: grid;
+  gap: 1rem;
+}
+
+h1 {
+  margin: 0;
+}
+
+p {
+  margin: 0;
+  color: #444;
+}
+
+label {
+  display: grid;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+
+input[type='text'],
+input[type='file'] {
+  font: inherit;
+  padding: 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.image-input {
+  width: fit-content;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+button {
+  border: 0;
+  border-radius: 6px;
+  padding: 0.65rem 1rem;
+  background: #005cbb;
+  color: #fff;
+  cursor: pointer;
+}
+
+button:disabled {
+  background: #8297b0;
+  cursor: not-allowed;
+}
+
+.status {
+  color: #333;
+}
