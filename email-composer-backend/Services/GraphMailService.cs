@@ -11,19 +11,23 @@ public sealed class GraphMailService
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly GraphOptions _graphOptions;
+    private readonly SqlRecipientService _recipientService;
 
     public GraphMailService(
         IHttpClientFactory httpClientFactory,
-        IOptions<GraphOptions> graphOptions)
+        IOptions<GraphOptions> graphOptions,
+        SqlRecipientService recipientService)
     {
         _httpClientFactory = httpClientFactory;
         _graphOptions = graphOptions.Value;
+        _recipientService = recipientService;
     }
 
     public async Task SendMailAsync(SendMailRequest request, CancellationToken cancellationToken)
     {
         ValidateSettings();
 
+        var recipients = await _recipientService.GetRecipientEmailAddressesAsync(cancellationToken);
         var accessToken = await GetAccessTokenAsync(cancellationToken);
         var graphClient = _httpClientFactory.CreateClient();
         graphClient.DefaultRequestHeaders.Authorization =
@@ -39,7 +43,7 @@ public sealed class GraphMailService
                     contentType = "HTML",
                     content = request.BodyHtml
                 },
-                toRecipients = request.ToRecipients.Select(email => new
+                toRecipients = recipients.Select(email => new
                 {
                     emailAddress = new
                     {

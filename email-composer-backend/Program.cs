@@ -15,6 +15,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.Configure<GraphOptions>(
     builder.Configuration.GetSection(GraphOptions.SectionName));
+builder.Services.AddScoped<SqlRecipientService>();
 builder.Services.AddScoped<GraphMailService>();
 
 var app = builder.Build();

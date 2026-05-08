@@ -9,7 +9,4 @@ public sealed class SendMailRequest
 
     [Required]
     public string BodyHtml { get; set; } = string.Empty;
-
-    [MinLength(1)]
-    public List<string> ToRecipients { get; set; } = [];
 }
