@@ -1,36 +1,46 @@
 <main class="page">
   <section class="composer">
-    <h1>HTML Email Composer</h1>
-    <p>Write a rich email body, insert local images, and send through Graph API.</p>
+    <header class="hero">
+      <h1>HTML Email Composer</h1>
+      <p>Craft polished, rich-text emails and send them through Microsoft Graph.</p>
+    </header>
 
-    <label>
-      To (comma-separated)
-      <input
-        type="text"
-        name="toRecipients"
-        [(ngModel)]="toRecipients"
-        placeholder="recipient1@contoso.com, recipient2@contoso.com"
-      />
-    </label>
+    <div class="form-grid">
+      <label>
+        To (comma-separated)
+        <input
+          type="text"
+          name="toRecipients"
+          [(ngModel)]="toRecipients"
+          placeholder="recipient1@contoso.com, recipient2@contoso.com"
+        />
+      </label>
 
-    <label>
-      Subject
-      <input type="text" name="subject" [(ngModel)]="subject" placeholder="Email subject" />
-    </label>
+      <label>
+        Subject
+        <input type="text" name="subject" [(ngModel)]="subject" placeholder="Quarterly update" />
+      </label>
+    </div>
 
-    <label class="image-input">
-      Insert image
-      <input type="file" accept="image/*" (change)="insertImage($event)" />
-    </label>
+    <div class="toolbar-row">
+      <label class="image-input">
+        <span>Insert image</span>
+        <input type="file" accept="image/*" (change)="insertImage($event)" />
+      </label>
+      <small>Tip: images are embedded inline in the HTML body.</small>
+    </div>
 
-    <quill-editor
-      [(ngModel)]="bodyHtml"
-      name="bodyHtml"
-      [modules]="editorModules"
-      [style]="{ height: '320px' }"
-      format="html"
-      placeholder="Compose HTML email body..."
-    ></quill-editor>
+    <section class="editor-shell">
+      <h2>Message body</h2>
+      <quill-editor
+        [(ngModel)]="bodyHtml"
+        name="bodyHtml"
+        [modules]="editorModules"
+        [style]="{ height: '340px' }"
+        format="html"
+        placeholder="Compose HTML email body..."
+      ></quill-editor>
+    </section>
 
     <div class="actions">
       <button type="button" (click)="sendMail()" [disabled]="isSending">
