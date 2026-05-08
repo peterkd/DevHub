@@ -25,6 +25,13 @@ p {
   color: #444;
 }
 
+.recipient-note {
+  padding: 0.75rem;
+  background: #eef5ff;
+  border: 1px solid #c7dcff;
+  border-radius: 6px;
+}
+
 label {
   display: grid;
   gap: 0.4rem;
