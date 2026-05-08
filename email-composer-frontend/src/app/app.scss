@@ -83,10 +83,27 @@ input[type='file']:focus {
   align-items: end;
   justify-content: space-between;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .toolbar-row small {
   color: #6f7b95;
+}
+
+.sql-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #c8d2e2;
+  border-radius: 10px;
+  background: #fcfdff;
+  font-size: 0.95rem;
+}
+
+.sql-option input[type='checkbox'] {
+  width: 1rem;
+  height: 1rem;
 }
 
 .image-input {

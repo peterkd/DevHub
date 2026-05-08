@@ -17,6 +17,7 @@ export class App {
   private readonly http = inject(HttpClient);
 
   toRecipients = '';
+  includeSqlRecipients = false;
   subject = '';
   bodyHtml = '';
   isSending = false;
@@ -46,6 +47,7 @@ export class App {
       const payload = {
         subject: this.subject,
         bodyHtml: this.bodyHtml,
+        includeSqlRecipients: this.includeSqlRecipients,
         toRecipients: this.toRecipients
           .split(',')
           .map((email) => email.trim())

@@ -27,7 +27,15 @@
         <span>Insert image</span>
         <input type="file" accept="image/*" (change)="insertImage($event)" />
       </label>
-      <small>Tip: images are embedded inline in the HTML body.</small>
+      <label class="sql-option">
+        <input
+          type="checkbox"
+          name="includeSqlRecipients"
+          [(ngModel)]="includeSqlRecipients"
+        />
+        <span>Include SQL recipient list</span>
+      </label>
+      <small>Tip: SQL recipients are appended to manual recipients when checked.</small>
     </div>
 
     <section class="editor-shell">
