@@ -16,6 +16,7 @@ export class App {
   @ViewChild(QuillEditorComponent) editorComponent?: QuillEditorComponent;
   private readonly http = inject(HttpClient);
 
+  toRecipients = '';
   subject = '';
   bodyHtml = '';
   isSending = false;
@@ -44,7 +45,11 @@ export class App {
     try {
       const payload = {
         subject: this.subject,
-        bodyHtml: this.bodyHtml
+        bodyHtml: this.bodyHtml,
+        toRecipients: this.toRecipients
+          .split(',')
+          .map((email) => email.trim())
+          .filter((email) => email.length > 0)
       };
 
       await firstValueFrom(
