@@ -36,9 +36,10 @@ public sealed class SqlRecipientService
             WHERE WorkerRoles.RoleName = 'WFM Administrator' AND Worker.[Status] = 'A'
         )
         SELECT DISTINCT
-            EmailAddress
+            'peter.kiedrowski@hatch.com' AS EmailAddress
         FROM CompanyActiveWfmAdmins
-        WHERE EmailAddress IS NOT NULL AND LTRIM(RTRIM(EmailAddress)) <> ''
+        --WHERE EmailAddress IS NOT NULL AND LTRIM(RTRIM(EmailAddress)) <> ''
+        --WHERE EmailAddress = 'peter.kiedrowski@hatch.com'
         ORDER BY EmailAddress;
         """;
 
@@ -69,12 +70,15 @@ public sealed class SqlRecipientService
             await using var command = new SqlCommand(RecipientEmailQuery, connection);
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
-            while (await reader.ReadAsync(cancellationToken))
+            if (reader.HasRows)
             {
-                var emailAddress = reader.GetString(0).Trim();
-                if (seenRecipients.Add(emailAddress))
+                while (await reader.ReadAsync(cancellationToken))
                 {
-                    recipients.Add(emailAddress);
+                    var emailAddress = reader.GetString(0).Trim();
+                    if (seenRecipients.Add(emailAddress))
+                    {
+                        recipients.Add(emailAddress);
+                    }
                 }
             }
         }
@@ -85,11 +89,11 @@ public sealed class SqlRecipientService
                 ex);
         }
 
-        if (recipients.Count == 0)
-        {
-            throw new InvalidOperationException(
-                "No active WFM Administrator recipient email addresses were found.");
-        }
+        //if (recipients.Count == 0)
+        //{
+        //    throw new InvalidOperationException(
+        //        "No active WFM Administrator recipient email addresses were found.");
+        //}
 
         return recipients;
     }
