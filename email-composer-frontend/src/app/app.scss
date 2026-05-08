@@ -120,6 +120,11 @@ input[type='file']:focus {
   display: grid;
   gap: 0.7rem;
   margin-bottom: 0.6rem;
+  min-height: 520px;
+}
+
+.editor-shell quill-editor {
+  display: block;
 }
 
 :host ::ng-deep .ql-toolbar.ql-snow,
@@ -135,6 +140,7 @@ input[type='file']:focus {
 
 :host ::ng-deep .ql-container.ql-snow {
   border-radius: 0 0 10px 10px;
+  min-height: 360px;
 }
 
 .actions {
