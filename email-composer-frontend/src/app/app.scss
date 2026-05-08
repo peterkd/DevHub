@@ -119,6 +119,7 @@ input[type='file']:focus {
   background: rgb(15 23 42 / 65%);
   display: grid;
   gap: 0.7rem;
+  margin-bottom: 0.6rem;
 }
 
 :host ::ng-deep .ql-toolbar.ql-snow,
