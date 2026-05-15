@@ -65,7 +65,8 @@ label {
 }
 
 input[type='text'],
-input[type='file'] {
+input[type='file'],
+select {
   font: inherit;
   padding: 0.7rem 0.8rem;
   border: 1px solid rgb(148 163 184 / 45%);
@@ -75,9 +76,15 @@ input[type='file'] {
 }
 
 input[type='text']:focus,
-input[type='file']:focus {
+input[type='file']:focus,
+select:focus {
   outline: 2px solid #8b5cf6;
   outline-offset: 1px;
+}
+
+select:disabled {
+  color: #94a3b8;
+  cursor: not-allowed;
 }
 
 .toolbar-row {
@@ -106,6 +113,10 @@ input[type='file']:focus {
 .sql-option input[type='checkbox'] {
   width: 1rem;
   height: 1rem;
+}
+
+.organization-role-option {
+  min-width: min(280px, 100%);
 }
 
 .image-input {

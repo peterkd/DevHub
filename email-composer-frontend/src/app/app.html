@@ -35,7 +35,28 @@
         />
         <span>Include SQL recipient list</span>
       </label>
-      <small>Tip: SQL recipients are appended to manual recipients when checked.</small>
+      <label class="organization-role-option">
+        <span>Organization role</span>
+        <select
+          name="organizationRole"
+          [(ngModel)]="selectedOrganizationRole"
+          [disabled]="!includeSqlRecipients || isLoadingOrganizationRoles || organizationRoles.length === 0"
+        >
+          <option value="" disabled>
+            {{ isLoadingOrganizationRoles ? 'Loading organization roles...' : 'Select organizationRole' }}
+          </option>
+          @for (organizationRole of organizationRoles; track organizationRole) {
+            <option [value]="organizationRole">{{ organizationRole }}</option>
+          }
+        </select>
+      </label>
+      <small>
+        @if (organizationRolesLoadFailed) {
+          Unable to load organization roles.
+        } @else {
+          SQL recipients are appended to manual recipients when checked.
+        }
+      </small>
     </div>
 
     <section class="editor-shell">
