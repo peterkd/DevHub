@@ -14,4 +14,6 @@ public sealed class SendMailRequest
     public List<string> ToRecipients { get; set; } = [];
 
     public bool IncludeSqlRecipients { get; set; }
+
+    public string? OrganizationRole { get; set; }
 }

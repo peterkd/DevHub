@@ -27,6 +27,15 @@
         <span>Insert image</span>
         <input type="file" accept="image/*" (change)="insertImage($event)" />
       </label>
+      <label class="role-select">
+        Organization Role
+        <select name="organizationRole" [(ngModel)]="selectedOrganizationRole">
+          <option value="">-- Select a role --</option>
+          @for (role of organizationRoles; track role) {
+            <option [value]="role">{{ role }}</option>
+          }
+        </select>
+      </label>
       <label class="sql-option">
         <input
           type="checkbox"
