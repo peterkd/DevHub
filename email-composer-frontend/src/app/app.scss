@@ -54,7 +54,7 @@ p {
 .form-grid {
   display: grid;
   gap: 1rem;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr;
 }
 
 label {
@@ -65,7 +65,8 @@ label {
 }
 
 input[type='text'],
-input[type='file'] {
+input[type='file'],
+select {
   font: inherit;
   padding: 0.7rem 0.8rem;
   border: 1px solid rgb(148 163 184 / 45%);
@@ -74,8 +75,24 @@ input[type='file'] {
   color: #f1f5f9;
 }
 
+select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #cbd5e1 50%),
+    linear-gradient(135deg, #cbd5e1 50%, transparent 50%);
+  background-position: calc(100% - 1rem) 50%, calc(100% - 0.65rem) 50%;
+  background-size: 0.35rem 0.35rem, 0.35rem 0.35rem;
+  background-repeat: no-repeat;
+  padding-right: 2rem;
+}
+
+select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 input[type='text']:focus,
-input[type='file']:focus {
+input[type='file']:focus,
+select:focus {
   outline: 2px solid #8b5cf6;
   outline-offset: 1px;
 }
@@ -185,6 +202,10 @@ button:disabled {
 
   .form-grid {
     grid-template-columns: 1fr;
+  }
+
+  select {
+    width: 100%;
   }
 
   .toolbar-row {

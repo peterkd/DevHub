@@ -1,5 +1,5 @@
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { Component, ViewChild, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { QuillEditorComponent, QuillModule } from 'ngx-quill';
 import Quill from 'quill';
@@ -12,7 +12,7 @@ import { environment } from '../environments/environment';
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
-export class App {
+export class App implements OnInit {
   @ViewChild(QuillEditorComponent) editorComponent?: QuillEditorComponent;
   private readonly http = inject(HttpClient);
 
@@ -22,6 +22,9 @@ export class App {
   bodyHtml = '';
   isSending = false;
   statusMessage = '';
+  organizationRole = '';
+  organizationRoles: string[] = [];
+  isLoadingOrganizationRoles = false;
 
   readonly editorModules = {
     toolbar: [
@@ -34,6 +37,26 @@ export class App {
       ['clean']
     ]
   };
+
+  async ngOnInit(): Promise<void> {
+    await this.loadOrganizationRoles();
+  }
+
+  async loadOrganizationRoles(): Promise<void> {
+    this.isLoadingOrganizationRoles = true;
+    try {
+      const roles = await firstValueFrom(
+        this.http.get<string[]>(
+          `${environment.apiBaseUrl}/api/mail/organization-roles`
+        )
+      );
+      this.organizationRoles = roles ?? [];
+    } catch {
+      this.organizationRoles = [];
+    } finally {
+      this.isLoadingOrganizationRoles = false;
+    }
+  }
 
   async sendMail(): Promise<void> {
     if (this.isSending) {
@@ -48,6 +71,7 @@ export class App {
         subject: this.subject,
         bodyHtml: this.bodyHtml,
         includeSqlRecipients: this.includeSqlRecipients,
+        organizationRole: this.organizationRole || null,
         toRecipients: this.toRecipients
           .split(',')
           .map((email) => email.trim())

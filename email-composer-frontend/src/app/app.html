@@ -20,6 +20,22 @@
         Subject
         <input type="text" name="subject" [(ngModel)]="subject" placeholder="Quarterly update" />
       </label>
+
+      <label>
+        Organization role
+        <select
+          name="organizationRole"
+          [(ngModel)]="organizationRole"
+          [disabled]="isLoadingOrganizationRoles"
+        >
+          <option value="">
+            {{ isLoadingOrganizationRoles ? 'Loading roles...' : 'All organization roles' }}
+          </option>
+          @for (role of organizationRoles; track role) {
+            <option [value]="role">{{ role }}</option>
+          }
+        </select>
+      </label>
     </div>
 
     <div class="toolbar-row">
