@@ -1,5 +1,5 @@
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { Component, ViewChild, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { QuillEditorComponent, QuillModule } from 'ngx-quill';
 import Quill from 'quill';
@@ -12,12 +12,15 @@ import { environment } from '../environments/environment';
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
-export class App {
+export class App implements OnInit {
   @ViewChild(QuillEditorComponent) editorComponent?: QuillEditorComponent;
   private readonly http = inject(HttpClient);
 
   toRecipients = '';
   includeSqlRecipients = false;
+  organizationRoles: string[] = [];
+  selectedOrganizationRole = '';
+  isLoadingOrganizationRoles = false;
   subject = '';
   bodyHtml = '';
   isSending = false;
@@ -35,8 +38,17 @@ export class App {
     ]
   };
 
+  ngOnInit(): void {
+    void this.loadOrganizationRoles();
+  }
+
   async sendMail(): Promise<void> {
     if (this.isSending) {
+      return;
+    }
+
+    if (this.includeSqlRecipients && this.selectedOrganizationRole.length === 0) {
+      this.statusMessage = 'Select an organization role to include SQL recipients.';
       return;
     }
 
@@ -48,6 +60,7 @@ export class App {
         subject: this.subject,
         bodyHtml: this.bodyHtml,
         includeSqlRecipients: this.includeSqlRecipients,
+        organizationRole: this.selectedOrganizationRole || null,
         toRecipients: this.toRecipients
           .split(',')
           .map((email) => email.trim())
@@ -86,6 +99,21 @@ export class App {
       editor.setSelection(index + 1, 0, Quill.sources.SILENT);
     } finally {
       input.value = '';
+    }
+  }
+
+  private async loadOrganizationRoles(): Promise<void> {
+    this.isLoadingOrganizationRoles = true;
+
+    try {
+      const organizationRoles = await firstValueFrom(
+        this.http.get<string[]>(`${environment.apiBaseUrl}/api/mail/organization-roles`)
+      );
+      this.organizationRoles = organizationRoles;
+    } catch {
+      this.statusMessage = 'Unable to load organization roles from SQL.';
+    } finally {
+      this.isLoadingOrganizationRoles = false;
     }
   }
 

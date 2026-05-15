@@ -20,6 +20,20 @@
         Subject
         <input type="text" name="subject" [(ngModel)]="subject" placeholder="Quarterly update" />
       </label>
+
+      <label>
+        Organization role
+        <select
+          name="organizationRole"
+          [(ngModel)]="selectedOrganizationRole"
+          [disabled]="isLoadingOrganizationRoles || organizationRoles.length === 0"
+        >
+          <option value="">Select organization role</option>
+          @for (organizationRole of organizationRoles; track organizationRole) {
+            <option [value]="organizationRole">{{ organizationRole }}</option>
+          }
+        </select>
+      </label>
     </div>
 
     <div class="toolbar-row">
@@ -35,7 +49,7 @@
         />
         <span>Include SQL recipient list</span>
       </label>
-      <small>Tip: SQL recipients are appended to manual recipients when checked.</small>
+      <small>Tip: SQL recipients are loaded by selected organization role and appended when checked.</small>
     </div>
 
     <section class="editor-shell">

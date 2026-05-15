@@ -13,7 +13,8 @@ This repository contains:
 - Rich text editor for HTML body
 - Insert local image files into editor as inline base64 images
 - Manual comma-separated recipient textbox
-- Optional SQL recipient inclusion (appended to manual recipients when selected)
+- Organization role dropdown loaded from SQL (`WorkerRole.OrganizationRole`)
+- Optional SQL recipient inclusion (loaded by selected organization role and appended to manual recipients when selected)
 - Subject field
 - Calls backend endpoint `POST /api/mail/send`
 
@@ -55,7 +56,7 @@ The backend can optionally load recipients from Azure SQL using connection strin
 }
 ```
 
-If the request includes `"includeSqlRecipients": true`, SQL recipients are appended to the manually provided recipients and deduplicated.
+If the request includes `"includeSqlRecipients": true`, the backend requires an `"organizationRole"` value and appends SQL recipients for that organization role to the manually provided recipients (deduplicated).
 
 ### Run
 
@@ -76,6 +77,17 @@ Backend listens on `http://localhost:5000` by default via launch settings.
   "subject": "Hello",
   "bodyHtml": "<p>Message body</p>",
   "toRecipients": ["person@contoso.com", "team@contoso.com"],
-  "includeSqlRecipients": true
+  "includeSqlRecipients": true,
+  "organizationRole": "Regional Lead"
 }
+```
+
+`GET /api/mail/organization-roles`
+
+Returns distinct organization roles from SQL:
+
+```sql
+SELECT DISTINCT [OrganizationRole]
+FROM [dbo].[WorkerRole]
+ORDER BY [OrganizationRole];
 ```
