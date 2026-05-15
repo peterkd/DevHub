@@ -61,11 +61,34 @@ describe('App', () => {
 
     expect(controls).toEqual([
       'subject',
+      'workerFunction',
+      'position',
       'organizationRole',
       'userRole',
       'toRecipients',
       'file'
     ]);
+  });
+
+  it('should render configured worker function and position options', async () => {
+    const fixture = TestBed.createComponent(App);
+    const httpTesting = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    httpTesting.expectOne(organizationRolesUrl).flush([]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const workerFunctionOptions = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('select[name="workerFunction"] option')
+    ).map((option) => option.textContent?.trim());
+    const positionOptions = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('select[name="position"] option')
+    ).map((option) => option.textContent?.trim());
+
+    expect(workerFunctionOptions).toContain('Construction');
+    expect(workerFunctionOptions).toContain('Resident Engineering Team (RET)');
+    expect(positionOptions).toContain('Director');
+    expect(positionOptions).toContain('Worker');
   });
 
   it('should render organization role options from the API and default to Select Role', async () => {

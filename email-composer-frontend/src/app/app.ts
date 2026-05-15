@@ -18,6 +18,8 @@ export class App implements OnInit {
   private userRoleRequestId = 0;
 
   toRecipients = '';
+  selectedWorkerFunction = '';
+  selectedPosition = '';
   organizationRoles: string[] = [];
   selectedOrganizationRole = '';
   userRoles: string[] = [];
@@ -30,6 +32,9 @@ export class App implements OnInit {
   bodyHtml = '';
   isSending = false;
   statusMessage = '';
+
+  readonly workerFunctions = environment.WorkerFunctions;
+  readonly positions = environment.Positions;
 
   readonly editorModules = {
     toolbar: [

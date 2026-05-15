@@ -6,9 +6,29 @@
     </header>
 
     <div class="form-grid">
-      <label>
+      <label class="subject-field">
         Subject
         <input type="text" name="subject" [(ngModel)]="subject" placeholder="Quarterly update" />
+      </label>
+
+      <label class="function-option">
+        <span>Function</span>
+        <select name="workerFunction" [(ngModel)]="selectedWorkerFunction">
+          <option value="" disabled>Select Function</option>
+          @for (workerFunction of workerFunctions; track workerFunction) {
+            <option [value]="workerFunction">{{ workerFunction }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="position-option">
+        <span>Position</span>
+        <select name="position" [(ngModel)]="selectedPosition">
+          <option value="" disabled>Select Position</option>
+          @for (position of positions; track position) {
+            <option [value]="position">{{ position }}</option>
+          }
+        </select>
       </label>
 
       <label class="organization-role-option">
@@ -48,7 +68,7 @@
         </select>
       </label>
 
-      <label>
+      <label class="to-field">
         To (comma-separated)
         <input
           type="text"
@@ -58,7 +78,7 @@
         />
       </label>
 
-      <label class="image-input">
+      <label class="image-input image-row">
         <span>Insert image</span>
         <input type="file" accept="image/*" (change)="insertImage($event)" />
       </label>

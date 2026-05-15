@@ -54,7 +54,7 @@ p {
 .form-grid {
   display: grid;
   gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 label {
@@ -92,7 +92,15 @@ select:disabled {
   grid-column: 1 / -1;
 }
 
+.subject-field,
+.to-field,
+.image-row {
+  grid-column: 1 / -1;
+}
+
 .organization-role-option,
+.function-option,
+.position-option,
 .user-role-option {
   min-width: min(280px, 100%);
 }
@@ -174,6 +182,12 @@ button:disabled {
 
   .form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .subject-field,
+  .to-field,
+  .image-row {
+    grid-column: auto;
   }
 
   .image-input {
