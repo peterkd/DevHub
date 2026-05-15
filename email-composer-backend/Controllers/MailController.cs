@@ -19,6 +19,23 @@ public sealed class MailController : ControllerBase
         _sqlRecipientService = sqlRecipientService;
     }
 
+    [HttpGet("organization-roles")]
+    public async Task<ActionResult<IReadOnlyList<string>>> GetOrganizationRoles(
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var organizationRoles =
+                await _sqlRecipientService.GetOrganizationRolesAsync(cancellationToken);
+
+            return Ok(organizationRoles);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpPost("send")]
     public async Task<IActionResult> SendMail(
         [FromBody] SendMailRequest request,
@@ -31,17 +48,32 @@ public sealed class MailController : ControllerBase
 
         try
         {
+            var recipients = (request.ToRecipients ?? [])
+                .Select(email => email.Trim())
+                .Where(email => email.Length > 0);
+
             if (request.IncludeSqlRecipients)
             {
                 var sqlRecipients =
-                    await _sqlRecipientService.GetRecipientEmailAddressesAsync(cancellationToken);
+                    await _sqlRecipientService.GetRecipientEmailAddressesAsync(
+                        request.OrganizationRole!,
+                        cancellationToken);
 
-                request.ToRecipients = request.ToRecipients
-                    .Concat(sqlRecipients)
-                    .Select(email => email.Trim())
-                    .Where(email => email.Length > 0)
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .ToList();
+                recipients = recipients.Concat(sqlRecipients);
+            }
+
+            request.ToRecipients = recipients
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            if (request.ToRecipients.Count == 0)
+            {
+                return BadRequest(new
+                {
+                    message = request.IncludeSqlRecipients
+                        ? "No recipients were found for the selected organization role."
+                        : "At least one recipient is required."
+                });
             }
 
             await _graphMailService.SendMailAsync(request, cancellationToken);

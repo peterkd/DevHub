@@ -32,11 +32,35 @@
           type="checkbox"
           name="includeSqlRecipients"
           [(ngModel)]="includeSqlRecipients"
+          (ngModelChange)="onIncludeSqlRecipientsChanged($event)"
         />
         <span>Include SQL recipient list</span>
       </label>
+      <label class="sql-role">
+        <span>Organization role</span>
+        <select
+          name="organizationRole"
+          [(ngModel)]="organizationRole"
+          [disabled]="!includeSqlRecipients || isLoadingOrganizationRoles || organizationRoles.length === 0"
+        >
+          <option value="">
+            {{
+              isLoadingOrganizationRoles
+                ? 'Loading organization roles...'
+                : organizationRoles.length === 0
+                  ? 'No organization roles available'
+                  : 'Select an organization role'
+            }}
+          </option>
+          <option *ngFor="let organizationRoleOption of organizationRoles" [value]="organizationRoleOption">
+            {{ organizationRoleOption }}
+          </option>
+        </select>
+      </label>
       <small>Tip: SQL recipients are appended to manual recipients when checked.</small>
     </div>
+
+    <small class="sql-role-message" *ngIf="organizationRoleMessage">{{ organizationRoleMessage }}</small>
 
     <section class="editor-shell">
       <h2>Message body</h2>

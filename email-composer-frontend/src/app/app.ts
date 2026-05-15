@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Component, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -8,7 +9,7 @@ import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
-  imports: [FormsModule, HttpClientModule, QuillModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, QuillModule],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
@@ -18,6 +19,10 @@ export class App {
 
   toRecipients = '';
   includeSqlRecipients = false;
+  organizationRole = '';
+  organizationRoles: string[] = [];
+  organizationRoleMessage = '';
+  isLoadingOrganizationRoles = false;
   subject = '';
   bodyHtml = '';
   isSending = false;
@@ -35,12 +40,51 @@ export class App {
     ]
   };
 
+  async onIncludeSqlRecipientsChanged(includeSqlRecipients: boolean): Promise<void> {
+    if (!includeSqlRecipients) {
+      this.organizationRoleMessage = '';
+      return;
+    }
+
+    if (this.organizationRoles.length > 0 || this.isLoadingOrganizationRoles) {
+      return;
+    }
+
+    this.organizationRoleMessage = '';
+    this.isLoadingOrganizationRoles = true;
+
+    try {
+      const organizationRoles = await firstValueFrom(
+        this.http.get<string[]>(`${environment.apiBaseUrl}/api/mail/organization-roles`)
+      );
+
+      this.organizationRoles = organizationRoles;
+      this.organizationRole = organizationRoles[0] ?? '';
+
+      if (organizationRoles.length === 0) {
+        this.includeSqlRecipients = false;
+        this.organizationRoleMessage = 'No organization roles were returned from SQL.';
+      }
+    } catch {
+      this.includeSqlRecipients = false;
+      this.organizationRoleMessage = 'Failed to load organization roles from SQL.';
+    } finally {
+      this.isLoadingOrganizationRoles = false;
+    }
+  }
+
   async sendMail(): Promise<void> {
     if (this.isSending) {
       return;
     }
 
     this.statusMessage = '';
+
+    if (this.includeSqlRecipients && !this.organizationRole) {
+      this.statusMessage = 'Select an organization role before including SQL recipients.';
+      return;
+    }
+
     this.isSending = true;
 
     try {
@@ -48,6 +92,7 @@ export class App {
         subject: this.subject,
         bodyHtml: this.bodyHtml,
         includeSqlRecipients: this.includeSqlRecipients,
+        organizationRole: this.includeSqlRecipients ? this.organizationRole : null,
         toRecipients: this.toRecipients
           .split(',')
           .map((email) => email.trim())
