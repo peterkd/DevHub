@@ -60,6 +60,19 @@ describe('App', () => {
     expect(fixture.componentInstance.selectedOrganizationRole).toBe('');
   });
 
+  it('should not render an include SQL recipients checkbox', async () => {
+    const fixture = TestBed.createComponent(App);
+    const httpTesting = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    httpTesting.expectOne(organizationRolesUrl).flush([]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('input[name="includeSqlRecipients"]')
+    ).toBeNull();
+  });
+
   it('should render user role options based on organization role and default to Select Role', async () => {
     const fixture = TestBed.createComponent(App);
     const httpTesting = TestBed.inject(HttpTestingController);
@@ -103,7 +116,7 @@ describe('App', () => {
     expect(fixture.componentInstance.selectedUserRole).toBe('');
   });
 
-  it('should allow sending with empty manual recipients when SQL recipients are selected', async () => {
+  it('should include SQL recipients automatically when a user role is selected', async () => {
     const fixture = TestBed.createComponent(App);
     const httpTesting = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
@@ -114,7 +127,6 @@ describe('App', () => {
     expectUserRolesRequest(httpTesting, 'Construction Contractor').flush(['WFM Administrator']);
     await fixture.whenStable();
 
-    app.includeSqlRecipients = true;
     app.selectedUserRole = 'WFM Administrator';
     app.subject = 'Project update';
     app.bodyHtml = '<p>Hello</p>';
@@ -142,7 +154,6 @@ describe('App', () => {
     await fixture.whenStable();
 
     const app = fixture.componentInstance;
-    app.includeSqlRecipients = true;
     app.subject = 'Manual update';
     app.bodyHtml = '<p>Hello</p>';
     app.toRecipients = 'person@example.com';
@@ -182,7 +193,6 @@ describe('App', () => {
     expect(app.isSendDisabled).toBe(false);
 
     app.toRecipients = '';
-    app.includeSqlRecipients = true;
     app.selectedOrganizationRole = 'Construction Contractor';
     app.selectedUserRole = 'WFM Administrator';
     expect(app.isSendDisabled).toBe(false);

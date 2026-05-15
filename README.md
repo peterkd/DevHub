@@ -74,7 +74,7 @@ ORDER BY [Name]
 
 Both role dropdowns default to a neutral `"Select Role"` option. The send button is enabled when there is at least one valid manual email address or a selected SQL user role.
 
-If the request includes `"includeSqlRecipients": true`, SQL recipients for the selected `"organizationRole"` and `"userRole"` are appended to the manually provided recipients and deduplicated. The manual `"toRecipients"` list may be empty when SQL recipients are included.
+When a user role is selected, the frontend automatically includes SQL recipients for the selected `"organizationRole"` and `"userRole"`. Those SQL recipients are appended to the manually provided recipients and deduplicated. The manual `"toRecipients"` list may be empty when SQL recipients are included.
 
 ### Run
 

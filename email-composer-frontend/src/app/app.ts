@@ -18,7 +18,6 @@ export class App implements OnInit {
   private userRoleRequestId = 0;
 
   toRecipients = '';
-  includeSqlRecipients = false;
   organizationRoles: string[] = [];
   selectedOrganizationRole = '';
   userRoles: string[] = [];
@@ -49,11 +48,7 @@ export class App implements OnInit {
   }
 
   private get hasSelectedSqlRecipientRole(): boolean {
-    return (
-      this.includeSqlRecipients &&
-      this.selectedOrganizationRole.length > 0 &&
-      this.selectedUserRole.length > 0
-    );
+    return this.selectedOrganizationRole.length > 0 && this.selectedUserRole.length > 0;
   }
 
   private get hasValidManualRecipient(): boolean {
