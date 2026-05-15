@@ -5,12 +5,13 @@
       <p>Craft polished, rich-text emails and send them through Microsoft Graph.</p>
     </header>
 
-    <div class="form-grid">
+    <div class="roles-grid">
       <label>
         Organization role
         <select
           name="organizationRole"
           [(ngModel)]="selectedOrganizationRole"
+          (ngModelChange)="onOrganizationRoleChange()"
           [disabled]="isLoadingOrganizationRoles || organizationRoles.length === 0"
         >
           @if (isLoadingOrganizationRoles) {
@@ -25,6 +26,33 @@
         </select>
       </label>
 
+      <label>
+        User role
+        <select
+          name="userRole"
+          [(ngModel)]="selectedUserRole"
+          [disabled]="
+            isLoadingUserRoles ||
+            !selectedOrganizationRole ||
+            userRoles.length === 0
+          "
+        >
+          @if (isLoadingUserRoles) {
+            <option value="">Loading roles...</option>
+          } @else if (!selectedOrganizationRole) {
+            <option value="">Select an organization role first</option>
+          } @else if (userRoles.length === 0) {
+            <option value="">No user roles available</option>
+          } @else {
+            @for (role of userRoles; track role) {
+              <option [value]="role">{{ role }}</option>
+            }
+          }
+        </select>
+      </label>
+    </div>
+
+    <div class="form-grid">
       <label>
         To (comma-separated)
         <input

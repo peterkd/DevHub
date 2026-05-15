@@ -27,4 +27,22 @@ public sealed class RolesController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
+
+    [HttpGet("user-roles")]
+    public async Task<IActionResult> GetUserRoles(
+        [FromQuery] string organizationRole,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var roles = await _organizationRoleService.GetUserRolesAsync(
+                organizationRole,
+                cancellationToken);
+            return Ok(roles);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }

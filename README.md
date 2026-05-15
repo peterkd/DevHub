@@ -64,6 +64,14 @@ Returns distinct organization roles:
 ["Role A", "Role B"]
 ```
 
+`GET /api/roles/user-roles?organizationRole={organizationRole}`
+
+Returns user role names for the selected organization role:
+
+```json
+["WFM Administrator", "Other Role"]
+```
+
 `POST /api/mail/send`
 
 ```json

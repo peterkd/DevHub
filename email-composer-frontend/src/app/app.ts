@@ -19,9 +19,15 @@ export class App implements OnInit {
   toRecipients = '';
   subject = '';
   bodyHtml = '';
+  private static readonly defaultOrganizationRole = 'Construction Contractor';
+  private static readonly defaultUserRole = 'WFM Administrator';
+
   organizationRoles: string[] = [];
   selectedOrganizationRole = '';
+  userRoles: string[] = [];
+  selectedUserRole = '';
   isLoadingOrganizationRoles = false;
+  isLoadingUserRoles = false;
   isSending = false;
   statusMessage = '';
 
@@ -37,14 +43,58 @@ export class App implements OnInit {
         this.http.get<string[]>(`${environment.apiBaseUrl}/api/roles/organization-roles`)
       );
       this.organizationRoles = roles;
-      if (roles.length > 0 && !this.selectedOrganizationRole) {
-        this.selectedOrganizationRole = roles[0];
-      }
+      this.selectedOrganizationRole = this.resolveDefaultSelection(
+        roles,
+        App.defaultOrganizationRole
+      );
+      await this.loadUserRoles();
     } catch {
       this.statusMessage = 'Failed to load organization roles.';
     } finally {
       this.isLoadingOrganizationRoles = false;
     }
+  }
+
+  async onOrganizationRoleChange(): Promise<void> {
+    await this.loadUserRoles();
+  }
+
+  async loadUserRoles(): Promise<void> {
+    if (!this.selectedOrganizationRole) {
+      this.userRoles = [];
+      this.selectedUserRole = '';
+      return;
+    }
+
+    this.isLoadingUserRoles = true;
+
+    try {
+      const roles = await firstValueFrom(
+        this.http.get<string[]>(`${environment.apiBaseUrl}/api/roles/user-roles`, {
+          params: { organizationRole: this.selectedOrganizationRole }
+        })
+      );
+      this.userRoles = roles;
+      this.selectedUserRole = this.resolveDefaultSelection(roles, App.defaultUserRole);
+    } catch {
+      this.statusMessage = 'Failed to load user roles.';
+      this.userRoles = [];
+      this.selectedUserRole = '';
+    } finally {
+      this.isLoadingUserRoles = false;
+    }
+  }
+
+  private resolveDefaultSelection(options: string[], preferredValue: string): string {
+    if (options.length === 0) {
+      return '';
+    }
+
+    const preferred = options.find(
+      (option) => option.localeCompare(preferredValue, undefined, { sensitivity: 'accent' }) === 0
+    );
+
+    return preferred ?? options[0];
   }
 
   readonly editorModules = {

@@ -50,10 +50,18 @@ p {
   color: #5b6780;
 }
 
+.roles-grid,
 .form-grid {
   display: grid;
   gap: 1rem;
-  grid-template-columns: 1fr 2fr 1fr;
+}
+
+.roles-grid {
+  grid-template-columns: 1fr 1fr;
+}
+
+.form-grid {
+  grid-template-columns: 2fr 1fr;
 }
 
 label {
@@ -157,6 +165,7 @@ button:disabled {
     padding: 1.1rem;
   }
 
+  .roles-grid,
   .form-grid {
     grid-template-columns: 1fr;
   }
