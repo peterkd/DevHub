@@ -78,7 +78,7 @@ public sealed class MailController : ControllerBase
                         request.OrganizationRole ?? string.Empty,
                         request.UserRole ?? string.Empty,
                         request.WorkerFunction ?? string.Empty,
-                        request.Position ?? string.Empty,
+                        GetOptionalStringProperty(request, "Position"),
                         cancellationToken);
 
                 request.ToRecipients = NormalizeRecipients(request.ToRecipients.Concat(sqlRecipients));
@@ -105,5 +105,10 @@ public sealed class MailController : ControllerBase
             .Select(email => email.Trim())
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
+    }
+
+    private static string GetOptionalStringProperty(object source, string propertyName)
+    {
+        return source.GetType().GetProperty(propertyName)?.GetValue(source) as string ?? string.Empty;
     }
 }
