@@ -54,8 +54,6 @@ public sealed class SqlRecipientService
     private const string OrganizationRoleQuery = """
         SELECT DISTINCT [OrganizationRole]
         FROM [dbo].[WorkerRole]
-        WHERE [OrganizationRole] IS NOT NULL
-            AND LTRIM(RTRIM([OrganizationRole])) <> ''
         ORDER BY [OrganizationRole];
         """;
 
