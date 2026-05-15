@@ -75,11 +75,11 @@ public sealed class MailController : ControllerBase
             {
                 var sqlRecipients =
                     await _sqlRecipientService.GetRecipientEmailAddressesAsync(
-                        request.OrganizationRole ?? string.Empty,
-                        request.UserRole ?? string.Empty,
-                        request.WorkerFunction ?? string.Empty,
-                        request.Position ?? string.Empty,
-                        cancellationToken);
+                        organizationRole: request.OrganizationRole ?? string.Empty,
+                        userRole: request.UserRole ?? string.Empty,
+                        workerFunction: request.WorkerFunction ?? string.Empty,
+                        position: request.Position ?? string.Empty,
+                        cancellationToken: cancellationToken);
 
                 request.ToRecipients = NormalizeRecipients(request.ToRecipients.Concat(sqlRecipients));
             }

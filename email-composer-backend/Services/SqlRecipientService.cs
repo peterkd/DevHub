@@ -6,6 +6,10 @@ namespace EmailComposer.Backend.Services;
 public sealed class SqlRecipientService
 {
     private const string ConnectionStringName = "AzureSqlDatabase";
+    private const string OrganizationRoleParameterName = "@OrganizationRole";
+    private const string UserRoleParameterName = "@UserRole";
+    private const string WorkerFunctionParameterName = "@WorkerFunction";
+    private const string PositionParameterName = "@Position";
 
     private const string OrganizationRoleQuery = """
         SELECT distinct [OrganizationRole]
@@ -106,7 +110,7 @@ public sealed class SqlRecipientService
             UserRoleQuery,
             async command =>
             {
-                command.Parameters.AddWithValue("@OrganizationRole", organizationRole.Trim());
+                command.Parameters.AddWithValue(OrganizationRoleParameterName, organizationRole.Trim());
 
                 await using var reader = await command.ExecuteReaderAsync(cancellationToken);
                 while (await reader.ReadAsync(cancellationToken))
@@ -151,10 +155,10 @@ public sealed class SqlRecipientService
             RecipientEmailQuery,
             async command =>
             {
-                command.Parameters.AddWithValue("@OrganizationRole", organizationRole.Trim());
-                command.Parameters.AddWithValue("@UserRole", userRole.Trim());
-                command.Parameters.AddWithValue("@WorkerFunction", workerFunction.Trim());
-                command.Parameters.AddWithValue("@Position", position.Trim());
+                command.Parameters.AddWithValue(OrganizationRoleParameterName, organizationRole.Trim());
+                command.Parameters.AddWithValue(UserRoleParameterName, userRole.Trim());
+                command.Parameters.AddWithValue(WorkerFunctionParameterName, workerFunction.Trim());
+                command.Parameters.AddWithValue(PositionParameterName, position.Trim());
 
                 await using var reader = await command.ExecuteReaderAsync(cancellationToken);
                 while (await reader.ReadAsync(cancellationToken))
