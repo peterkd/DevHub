@@ -65,7 +65,8 @@ label {
 }
 
 input[type='text'],
-input[type='file'] {
+input[type='file'],
+select {
   font: inherit;
   padding: 0.7rem 0.8rem;
   border: 1px solid rgb(148 163 184 / 45%);
@@ -75,9 +76,15 @@ input[type='file'] {
 }
 
 input[type='text']:focus,
-input[type='file']:focus {
+input[type='file']:focus,
+select:focus {
   outline: 2px solid #8b5cf6;
   outline-offset: 1px;
+}
+
+select option {
+  background: #0f172a;
+  color: #f1f5f9;
 }
 
 .toolbar-row {
@@ -110,6 +117,14 @@ input[type='file']:focus {
 
 .image-input {
   width: fit-content;
+}
+
+.role-select {
+  min-width: 200px;
+}
+
+.role-select select {
+  width: 100%;
 }
 
 .editor-shell {
