@@ -19,6 +19,20 @@ public sealed class MailController : ControllerBase
         _sqlRecipientService = sqlRecipientService;
     }
 
+    [HttpGet("sql-recipient-organization-roles")]
+    public async Task<IActionResult> GetSqlRecipientOrganizationRoles(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var roles = await _sqlRecipientService.GetOrganizationRolesAsync(cancellationToken);
+            return Ok(roles);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpPost("send")]
     public async Task<IActionResult> SendMail(
         [FromBody] SendMailRequest request,
@@ -33,8 +47,15 @@ public sealed class MailController : ControllerBase
         {
             if (request.IncludeSqlRecipients)
             {
+                if (string.IsNullOrWhiteSpace(request.OrganizationRole))
+                {
+                    return BadRequest(new { message = "OrganizationRole is required when IncludeSqlRecipients is true." });
+                }
+
                 var sqlRecipients =
-                    await _sqlRecipientService.GetRecipientEmailAddressesAsync(cancellationToken);
+                    await _sqlRecipientService.GetRecipientEmailAddressesAsync(
+                        request.OrganizationRole.Trim(),
+                        cancellationToken);
 
                 request.ToRecipients = request.ToRecipients
                     .Concat(sqlRecipients)
