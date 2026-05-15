@@ -35,10 +35,14 @@ public sealed class SqlRecipientService
                 Worker.[EmailAddress]
             FROM [dbo].[Worker] Worker
             INNER JOIN WorkerRoles ON WorkerRoles.WorkerId = Worker.[Id]
-            WHERE WorkerRoles.OrganizationRole = @OrganizationRole
-                AND WorkerRoles.UserRole = @UserRole
-                AND Worker.[Function] = @WorkerFunction
-                AND Worker.[Position] = @Position
+            WHERE @OrganizationRole IS NOT NULL AND @OrganizationRole <> ''
+                AND @UserRole IS NOT NULL AND @UserRole <> ''
+                AND @WorkerFunction IS NOT NULL AND @WorkerFunction <> ''
+                AND @Position IS NOT NULL AND @Position <> ''
+                AND (WorkerRoles.OrganizationRole = @OrganizationRole OR @OrganizationRole IS NULL OR @OrganizationRole = '')
+                AND (WorkerRoles.UserRole = @UserRole OR @UserRole IS NULL OR @UserRole = '')
+                AND (Worker.[Function] = @WorkerFunction OR @WorkerFunction IS NULL OR @WorkerFunction = '')
+                AND (Worker.[Position] = @Position OR @Position IS NULL OR @Position = '')
                 AND Worker.[Status] = 'A'
         )
         SELECT DISTINCT
