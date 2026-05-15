@@ -176,6 +176,8 @@ describe('App', () => {
     expectUserRolesRequest(httpTesting, 'Construction Contractor').flush(['WFM Administrator']);
     await fixture.whenStable();
 
+    app.selectedWorkerFunction = 'Construction';
+    app.selectedPosition = 'Supervisor';
     app.selectedUserRole = 'WFM Administrator';
     app.subject = 'Project update';
     app.bodyHtml = '<p>Hello</p>';
@@ -189,6 +191,8 @@ describe('App', () => {
       includeSqlRecipients: true,
       organizationRole: 'Construction Contractor',
       userRole: 'WFM Administrator',
+      workerFunction: 'Construction',
+      position: 'Supervisor',
       toRecipients: []
     });
     sendRequest.flush({ message: 'Mail sent.' });
@@ -215,6 +219,8 @@ describe('App', () => {
       includeSqlRecipients: false,
       organizationRole: null,
       userRole: null,
+      workerFunction: null,
+      position: null,
       toRecipients: ['person@example.com']
     });
     sendRequest.flush({ message: 'Mail sent.' });
@@ -244,6 +250,10 @@ describe('App', () => {
     app.toRecipients = '';
     app.selectedOrganizationRole = 'Construction Contractor';
     app.selectedUserRole = 'WFM Administrator';
+    expect(app.isSendDisabled).toBe(true);
+
+    app.selectedWorkerFunction = 'Construction';
+    app.selectedPosition = 'Supervisor';
     expect(app.isSendDisabled).toBe(false);
   });
 

@@ -30,18 +30,20 @@ public sealed class SqlRecipientService
             LEFT JOIN [dbo].[WorkerRoleAssignment] WRA ON WRA.[WorkerId] = Worker.[Id]
             INNER JOIN [dbo].[WorkerRole] WR ON WR.[Id] = WRA.[RoleId]
         ),
-        ActiveWorkersForOrganizationRole AS (
+        ActiveWorkers AS (
             SELECT
                 Worker.[EmailAddress]
             FROM [dbo].[Worker] Worker
             INNER JOIN WorkerRoles ON WorkerRoles.WorkerId = Worker.[Id]
             WHERE WorkerRoles.OrganizationRole = @OrganizationRole
                 AND WorkerRoles.UserRole = @UserRole
+                AND Worker.[Function] = @WorkerFunction
+                AND Worker.[Position] = @Position
                 AND Worker.[Status] = 'A'
         )
         SELECT DISTINCT
             EmailAddress
-        FROM ActiveWorkersForOrganizationRole
+        FROM ActiveWorkers
         WHERE EmailAddress IS NOT NULL AND LTRIM(RTRIM(EmailAddress)) <> ''
         ORDER BY EmailAddress;
         """;
@@ -126,18 +128,16 @@ public sealed class SqlRecipientService
     public async Task<IReadOnlyList<string>> GetRecipientEmailAddressesAsync(
         string organizationRole,
         string userRole,
+        string workerFunction,
+        string position,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(organizationRole))
+        if (string.IsNullOrWhiteSpace(organizationRole) ||
+            string.IsNullOrWhiteSpace(userRole) ||
+            string.IsNullOrWhiteSpace(workerFunction) ||
+            string.IsNullOrWhiteSpace(position))
         {
-            throw new InvalidOperationException(
-                "Select an organization role before including SQL recipients.");
-        }
-
-        if (string.IsNullOrWhiteSpace(userRole))
-        {
-            throw new InvalidOperationException(
-                "Select a user role before including SQL recipients.");
+            return [];
         }
 
         var recipients = new List<string>();
@@ -149,6 +149,8 @@ public sealed class SqlRecipientService
             {
                 command.Parameters.AddWithValue("@OrganizationRole", organizationRole.Trim());
                 command.Parameters.AddWithValue("@UserRole", userRole.Trim());
+                command.Parameters.AddWithValue("@WorkerFunction", workerFunction.Trim());
+                command.Parameters.AddWithValue("@Position", position.Trim());
 
                 await using var reader = await command.ExecuteReaderAsync(cancellationToken);
                 while (await reader.ReadAsync(cancellationToken))

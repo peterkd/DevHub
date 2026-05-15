@@ -17,4 +17,8 @@ public sealed class SendMailRequest
     public string? OrganizationRole { get; set; }
 
     public string? UserRole { get; set; }
+
+    public string? WorkerFunction { get; set; }
+
+    public string? Position { get; set; }
 }

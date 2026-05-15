@@ -53,7 +53,12 @@ export class App implements OnInit {
   }
 
   private get hasSelectedSqlRecipientRole(): boolean {
-    return this.selectedOrganizationRole.length > 0 && this.selectedUserRole.length > 0;
+    return (
+      this.selectedOrganizationRole.length > 0 &&
+      this.selectedUserRole.length > 0 &&
+      this.selectedWorkerFunction.length > 0 &&
+      this.selectedPosition.length > 0
+    );
   }
 
   private get hasValidManualRecipient(): boolean {
@@ -100,6 +105,8 @@ export class App implements OnInit {
         includeSqlRecipients,
         organizationRole: includeSqlRecipients ? this.selectedOrganizationRole : null,
         userRole: includeSqlRecipients ? this.selectedUserRole : null,
+        workerFunction: includeSqlRecipients ? this.selectedWorkerFunction : null,
+        position: includeSqlRecipients ? this.selectedPosition : null,
         toRecipients: this.toRecipients
           .split(',')
           .map((email) => email.trim())

@@ -72,11 +72,11 @@ WHERE [OrganizationRole] = @OrganizationRole
 ORDER BY [Name]
 ```
 
-Both role dropdowns default to a neutral `"Select Role"` option. The send button is enabled when there is at least one valid manual email address or a selected SQL user role.
+Both role dropdowns default to a neutral `"Select Role"` option. The send button is enabled when there is at least one valid manual email address or a complete SQL recipient selection.
 
 The Function and Position dropdowns are populated from the frontend environment configuration keys `WorkerFunctions` and `Positions`.
 
-When a user role is selected, the frontend automatically includes SQL recipients for the selected `"organizationRole"` and `"userRole"`. Those SQL recipients are appended to the manually provided recipients and deduplicated. The manual `"toRecipients"` list may be empty when SQL recipients are included.
+When Function, Position, Organization role, and User role are all selected, the frontend automatically includes SQL recipients for the selected `"workerFunction"`, `"position"`, `"organizationRole"`, and `"userRole"`. Those SQL recipients are appended to the manually provided recipients and deduplicated. The manual `"toRecipients"` list may be empty when SQL recipients are included.
 
 ### Run
 
@@ -111,6 +111,8 @@ Backend listens on `http://localhost:5000` by default via launch settings.
   "toRecipients": ["person@contoso.com", "team@contoso.com"],
   "includeSqlRecipients": true,
   "organizationRole": "Operations",
-  "userRole": "WFM Administrator"
+  "userRole": "WFM Administrator",
+  "workerFunction": "Construction",
+  "position": "Supervisor"
 }
 ```
