@@ -20,9 +20,20 @@ describe('App', () => {
     httpTestingController.verify();
   });
 
-  it('should create the app', () => {
+  function flushOrganizationRoles(organizationRoles: string[] = []): void {
+    httpTestingController
+      .expectOne(`${environment.apiBaseUrl}/api/mail/organization-roles`)
+      .flush(organizationRoles);
+  }
+
+  it('should create the app', async () => {
     const fixture = TestBed.createComponent(App);
     const app = fixture.componentInstance;
+
+    fixture.detectChanges();
+    flushOrganizationRoles();
+    await fixture.whenStable();
+
     expect(app).toBeTruthy();
   });
 
@@ -30,11 +41,8 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     const app = fixture.componentInstance;
 
-    app.ngOnInit();
-
-    httpTestingController
-      .expectOne(`${environment.apiBaseUrl}/api/mail/organization-roles`)
-      .flush(['Operations', 'WFM']);
+    fixture.detectChanges();
+    flushOrganizationRoles(['Operations', 'WFM']);
 
     await fixture.whenStable();
 
@@ -44,6 +52,10 @@ describe('App', () => {
   it('should require organization role when SQL recipients are enabled', async () => {
     const fixture = TestBed.createComponent(App);
     const app = fixture.componentInstance;
+
+    fixture.detectChanges();
+    flushOrganizationRoles(['Operations']);
+    await fixture.whenStable();
 
     app.includeSqlRecipients = true;
 
