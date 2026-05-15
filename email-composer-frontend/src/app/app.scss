@@ -112,6 +112,41 @@ input[type='file']:focus {
   width: fit-content;
 }
 
+.role-row {
+  display: flex;
+  align-items: end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.role-row small {
+  color: #94a3b8;
+}
+
+.role-label {
+  display: grid;
+  gap: 0.4rem;
+  font-weight: 500;
+  color: #dbe4f3;
+  min-width: 220px;
+}
+
+.role-select {
+  font: inherit;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgb(148 163 184 / 45%);
+  border-radius: 10px;
+  background: rgb(15 23 42 / 80%);
+  color: #f1f5f9;
+  cursor: pointer;
+  appearance: auto;
+}
+
+.role-select:focus {
+  outline: 2px solid #8b5cf6;
+  outline-offset: 1px;
+}
+
 .editor-shell {
   border: 1px solid rgb(148 163 184 / 35%);
   border-radius: 14px;

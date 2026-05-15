@@ -38,6 +38,25 @@
       <small>Tip: SQL recipients are appended to manual recipients when checked.</small>
     </div>
 
+    @if (organizationRoles.length > 0) {
+      <div class="role-row">
+        <label class="role-label">
+          Organization role
+          <select
+            name="organizationRole"
+            [(ngModel)]="selectedOrganizationRole"
+            class="role-select"
+          >
+            <option value="">— All roles —</option>
+            @for (role of organizationRoles; track role) {
+              <option [value]="role">{{ role }}</option>
+            }
+          </select>
+        </label>
+        <small>Filter SQL recipients by organization role.</small>
+      </div>
+    }
+
     <section class="editor-shell">
       <h2>Message body</h2>
       <quill-editor

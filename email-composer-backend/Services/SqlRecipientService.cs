@@ -7,37 +7,34 @@ public sealed class SqlRecipientService
 {
     private const string ConnectionStringName = "AzureSqlDatabase";
 
-    private const string RecipientEmailQuery = """
+    private const string RecipientEmailQueryBase = """
         WITH WorkerRoles AS (
             SELECT
                 Worker.[Id] AS WorkerId,
-                Worker.[Role] AS RoleName
+                Worker.[Role] AS RoleName,
+                WR.[OrganizationRole] AS OrganizationRole
             FROM [dbo].[Worker] Worker
+            LEFT JOIN [dbo].[WorkerRoleAssignment] WRA ON WRA.[WorkerId] = Worker.[Id]
+            LEFT JOIN [dbo].[WorkerRole] WR ON WR.[Id] = WRA.[RoleId]
             UNION
             SELECT
                 Worker.[Id] AS WorkerId,
-                WR.[Name] AS RoleName
+                Worker.[Role] AS RoleName,
+                NULL AS OrganizationRole
             FROM [dbo].[Worker] Worker
-            LEFT JOIN [dbo].[WorkerRoleAssignment] WRA ON WRA.[WorkerId] = Worker.[Id]
-            INNER JOIN [dbo].[WorkerRole] WR ON WR.[Id] = WRA.[RoleId]
         ),
-        WorkerRolesAgg AS (
-            SELECT
-                WorkerId,
-                STRING_AGG(RoleName, ', ') AS Roles
-            FROM WorkerRoles
-            GROUP BY WorkerId
-        ),
-        CompanyActiveWfmAdmins AS (
+        CompanyActiveWorkers AS (
             SELECT
                 Worker.[EmailAddress]
             FROM [dbo].[Worker] Worker
             INNER JOIN WorkerRoles ON WorkerRoles.WorkerId = Worker.[Id]
-            WHERE WorkerRoles.RoleName = 'WFM Administrator' AND Worker.[Status] = 'A'
+            WHERE Worker.[Status] = 'A'
+                AND WorkerRoles.RoleName = 'WFM Administrator'
+                AND (@OrganizationRole IS NULL OR WorkerRoles.OrganizationRole = @OrganizationRole)
         )
         SELECT DISTINCT
             'peter.kiedrowski@hatch.com' AS EmailAddress
-        FROM CompanyActiveWfmAdmins
+        FROM CompanyActiveWorkers
         --WHERE EmailAddress IS NOT NULL AND LTRIM(RTRIM(EmailAddress)) <> ''
         --WHERE EmailAddress = 'peter.kiedrowski@hatch.com'
         ORDER BY EmailAddress;
@@ -50,7 +47,9 @@ public sealed class SqlRecipientService
         _configuration = configuration;
     }
 
-    public async Task<IReadOnlyList<string>> GetRecipientEmailAddressesAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<string>> GetRecipientEmailAddressesAsync(
+        string? organizationRole,
+        CancellationToken cancellationToken)
     {
         var connectionString = _configuration.GetConnectionString(ConnectionStringName);
         if (string.IsNullOrWhiteSpace(connectionString))
@@ -67,7 +66,9 @@ public sealed class SqlRecipientService
             await using var connection = new SqlConnection(connectionString);
             await connection.OpenAsync(cancellationToken);
 
-            await using var command = new SqlCommand(RecipientEmailQuery, connection);
+            await using var command = new SqlCommand(RecipientEmailQueryBase, connection);
+            command.Parameters.AddWithValue("@OrganizationRole",
+                string.IsNullOrWhiteSpace(organizationRole) ? DBNull.Value : organizationRole);
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
             if (reader.HasRows)

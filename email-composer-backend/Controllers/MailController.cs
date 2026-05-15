@@ -34,7 +34,8 @@ public sealed class MailController : ControllerBase
             if (request.IncludeSqlRecipients)
             {
                 var sqlRecipients =
-                    await _sqlRecipientService.GetRecipientEmailAddressesAsync(cancellationToken);
+                    await _sqlRecipientService.GetRecipientEmailAddressesAsync(
+                        request.OrganizationRole, cancellationToken);
 
                 request.ToRecipients = request.ToRecipients
                     .Concat(sqlRecipients)
