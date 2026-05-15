@@ -13,11 +13,19 @@ public sealed class SqlRecipientService
         ORDER BY [OrganizationRole]
         """;
 
+    private const string UserRoleQuery = """
+        SELECT distinct [Name]
+        FROM [dbo].[WorkerRole]
+        WHERE [OrganizationRole] = @OrganizationRole
+        ORDER BY [Name]
+        """;
+
     private const string RecipientEmailQuery = """
         WITH WorkerRoles AS (
             SELECT
                 Worker.[Id] AS WorkerId,
-                WR.[OrganizationRole] AS OrganizationRole
+                WR.[OrganizationRole] AS OrganizationRole,
+                WR.[Name] AS UserRole
             FROM [dbo].[Worker] Worker
             LEFT JOIN [dbo].[WorkerRoleAssignment] WRA ON WRA.[WorkerId] = Worker.[Id]
             INNER JOIN [dbo].[WorkerRole] WR ON WR.[Id] = WRA.[RoleId]
@@ -27,7 +35,9 @@ public sealed class SqlRecipientService
                 Worker.[EmailAddress]
             FROM [dbo].[Worker] Worker
             INNER JOIN WorkerRoles ON WorkerRoles.WorkerId = Worker.[Id]
-            WHERE WorkerRoles.OrganizationRole = @OrganizationRole AND Worker.[Status] = 'A'
+            WHERE WorkerRoles.OrganizationRole = @OrganizationRole
+                AND WorkerRoles.UserRole = @UserRole
+                AND Worker.[Status] = 'A'
         )
         SELECT DISTINCT
             EmailAddress
@@ -73,14 +83,61 @@ public sealed class SqlRecipientService
         return roles;
     }
 
-    public async Task<IReadOnlyList<string>> GetRecipientEmailAddressesAsync(
+    public async Task<IReadOnlyList<string>> GetUserRolesAsync(
         string organizationRole,
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(organizationRole))
         {
             throw new InvalidOperationException(
+                "Select an organization role before loading user roles.");
+        }
+
+        var roles = new List<string>();
+        var seenRoles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        await ExecuteSqlAsync(
+            UserRoleQuery,
+            async command =>
+            {
+                command.Parameters.AddWithValue("@OrganizationRole", organizationRole.Trim());
+
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+                while (await reader.ReadAsync(cancellationToken))
+                {
+                    if (reader.IsDBNull(0))
+                    {
+                        continue;
+                    }
+
+                    var userRole = reader.GetString(0).Trim();
+                    if (userRole.Length > 0 && seenRoles.Add(userRole))
+                    {
+                        roles.Add(userRole);
+                    }
+                }
+            },
+            "Unable to load user roles from Azure SQL.",
+            cancellationToken);
+
+        return roles;
+    }
+
+    public async Task<IReadOnlyList<string>> GetRecipientEmailAddressesAsync(
+        string organizationRole,
+        string userRole,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(organizationRole))
+        {
+            throw new InvalidOperationException(
                 "Select an organization role before including SQL recipients.");
+        }
+
+        if (string.IsNullOrWhiteSpace(userRole))
+        {
+            throw new InvalidOperationException(
+                "Select a user role before including SQL recipients.");
         }
 
         var recipients = new List<string>();
@@ -91,6 +148,7 @@ public sealed class SqlRecipientService
             async command =>
             {
                 command.Parameters.AddWithValue("@OrganizationRole", organizationRole.Trim());
+                command.Parameters.AddWithValue("@UserRole", userRole.Trim());
 
                 await using var reader = await command.ExecuteReaderAsync(cancellationToken);
                 while (await reader.ReadAsync(cancellationToken))

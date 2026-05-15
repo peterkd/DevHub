@@ -115,7 +115,8 @@ select:disabled {
   height: 1rem;
 }
 
-.organization-role-option {
+.organization-role-option,
+.user-role-option {
   min-width: min(280px, 100%);
 }
 

@@ -63,7 +63,18 @@ FROM [dbo].[WorkerRole]
 ORDER BY [OrganizationRole]
 ```
 
-If the request includes `"includeSqlRecipients": true`, SQL recipients for the selected `"organizationRole"` are appended to the manually provided recipients and deduplicated.
+After an organization role is selected, the frontend loads user role choices from:
+
+```sql
+SELECT distinct [Name]
+FROM [dbo].[WorkerRole]
+WHERE [OrganizationRole] = @OrganizationRole
+ORDER BY [Name]
+```
+
+The frontend defaults `"organizationRole"` to `"construction contractor"` and `"userRole"` to `"WFM Administrator"` when those values are available.
+
+If the request includes `"includeSqlRecipients": true`, SQL recipients for the selected `"organizationRole"` and `"userRole"` are appended to the manually provided recipients and deduplicated.
 
 ### Run
 
@@ -83,6 +94,12 @@ Backend listens on `http://localhost:5000` by default via launch settings.
 ["Accounting", "Operations"]
 ```
 
+`GET /api/mail/user-roles?organizationRole=Operations`
+
+```json
+["Supervisor", "WFM Administrator"]
+```
+
 `POST /api/mail/send`
 
 ```json
@@ -91,6 +108,7 @@ Backend listens on `http://localhost:5000` by default via launch settings.
   "bodyHtml": "<p>Message body</p>",
   "toRecipients": ["person@contoso.com", "team@contoso.com"],
   "includeSqlRecipients": true,
-  "organizationRole": "Operations"
+  "organizationRole": "Operations",
+  "userRole": "WFM Administrator"
 }
 ```

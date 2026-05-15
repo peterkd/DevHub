@@ -40,6 +40,7 @@
         <select
           name="organizationRole"
           [(ngModel)]="selectedOrganizationRole"
+          (ngModelChange)="onOrganizationRoleChange($event)"
           [disabled]="!includeSqlRecipients || isLoadingOrganizationRoles || organizationRoles.length === 0"
         >
           <option value="" disabled>
@@ -50,9 +51,31 @@
           }
         </select>
       </label>
+      <label class="user-role-option">
+        <span>User role</span>
+        <select
+          name="userRole"
+          [(ngModel)]="selectedUserRole"
+          [disabled]="
+            !includeSqlRecipients ||
+            !selectedOrganizationRole ||
+            isLoadingUserRoles ||
+            userRoles.length === 0
+          "
+        >
+          <option value="" disabled>
+            {{ isLoadingUserRoles ? 'Loading user roles...' : 'Select user role' }}
+          </option>
+          @for (userRole of userRoles; track userRole) {
+            <option [value]="userRole">{{ userRole }}</option>
+          }
+        </select>
+      </label>
       <small>
         @if (organizationRolesLoadFailed) {
           Unable to load organization roles.
+        } @else if (userRolesLoadFailed) {
+          Unable to load user roles.
         } @else {
           SQL recipients are appended to manual recipients when checked.
         }

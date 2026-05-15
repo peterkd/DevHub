@@ -13,15 +13,23 @@ import { environment } from '../environments/environment';
   styleUrl: './app.scss'
 })
 export class App implements OnInit {
+  private static readonly DefaultOrganizationRole = 'construction contractor';
+  private static readonly DefaultUserRole = 'WFM Administrator';
+
   @ViewChild(QuillEditorComponent) editorComponent?: QuillEditorComponent;
   private readonly http = inject(HttpClient);
+  private userRoleRequestId = 0;
 
   toRecipients = '';
   includeSqlRecipients = false;
   organizationRoles: string[] = [];
-  selectedOrganizationRole = '';
+  selectedOrganizationRole = App.DefaultOrganizationRole;
+  userRoles: string[] = [];
+  selectedUserRole = App.DefaultUserRole;
   isLoadingOrganizationRoles = false;
   organizationRolesLoadFailed = false;
+  isLoadingUserRoles = false;
+  userRolesLoadFailed = false;
   subject = '';
   bodyHtml = '';
   isSending = false;
@@ -55,6 +63,11 @@ export class App implements OnInit {
       return;
     }
 
+    if (this.includeSqlRecipients && !this.selectedUserRole) {
+      this.statusMessage = 'Select a user role before sending to SQL recipients.';
+      return;
+    }
+
     this.isSending = true;
 
     try {
@@ -63,6 +76,7 @@ export class App implements OnInit {
         bodyHtml: this.bodyHtml,
         includeSqlRecipients: this.includeSqlRecipients,
         organizationRole: this.includeSqlRecipients ? this.selectedOrganizationRole : null,
+        userRole: this.includeSqlRecipients ? this.selectedUserRole : null,
         toRecipients: this.toRecipients
           .split(',')
           .map((email) => email.trim())
@@ -104,6 +118,11 @@ export class App implements OnInit {
     }
   }
 
+  onOrganizationRoleChange(organizationRole: string): void {
+    this.selectedOrganizationRole = organizationRole;
+    void this.loadUserRoles(organizationRole);
+  }
+
   private async loadOrganizationRoles(): Promise<void> {
     this.isLoadingOrganizationRoles = true;
     this.organizationRolesLoadFailed = false;
@@ -112,12 +131,65 @@ export class App implements OnInit {
       this.organizationRoles = await firstValueFrom(
         this.http.get<string[]>(`${environment.apiBaseUrl}/api/mail/organization-roles`)
       );
+      this.selectedOrganizationRole = this.findMatchingOption(
+        this.organizationRoles,
+        App.DefaultOrganizationRole,
+        this.selectedOrganizationRole
+      );
+      await this.loadUserRoles(this.selectedOrganizationRole);
     } catch {
       this.organizationRoles = [];
       this.organizationRolesLoadFailed = true;
     } finally {
       this.isLoadingOrganizationRoles = false;
     }
+  }
+
+  private async loadUserRoles(organizationRole: string): Promise<void> {
+    const requestId = ++this.userRoleRequestId;
+    this.isLoadingUserRoles = true;
+    this.userRolesLoadFailed = false;
+    this.userRoles = [];
+    this.selectedUserRole = '';
+
+    if (!organizationRole) {
+      this.isLoadingUserRoles = false;
+      return;
+    }
+
+    try {
+      const userRoles = await firstValueFrom(
+        this.http.get<string[]>(`${environment.apiBaseUrl}/api/mail/user-roles`, {
+          params: { organizationRole }
+        })
+      );
+
+      if (requestId !== this.userRoleRequestId) {
+        return;
+      }
+
+      this.userRoles = userRoles;
+      this.selectedUserRole = this.findMatchingOption(
+        this.userRoles,
+        App.DefaultUserRole,
+        this.userRoles[0] ?? ''
+      );
+    } catch {
+      if (requestId !== this.userRoleRequestId) {
+        return;
+      }
+
+      this.userRoles = [];
+      this.userRolesLoadFailed = true;
+    } finally {
+      if (requestId === this.userRoleRequestId) {
+        this.isLoadingUserRoles = false;
+      }
+    }
+  }
+
+  private findMatchingOption(options: string[], preferred: string, fallback: string): string {
+    return options.find((option) => option.toLowerCase() === preferred.toLowerCase()) ?? fallback;
   }
 
   private fileToDataUrl(file: File): Promise<string> {

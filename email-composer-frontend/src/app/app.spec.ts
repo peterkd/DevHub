@@ -5,6 +5,9 @@ import { App } from './app';
 import { environment } from '../environments/environment';
 
 describe('App', () => {
+  const organizationRolesUrl = `${environment.apiBaseUrl}/api/mail/organization-roles`;
+  const userRolesUrl = `${environment.apiBaseUrl}/api/mail/user-roles`;
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
@@ -18,10 +21,11 @@ describe('App', () => {
 
   it('should create the app', async () => {
     const fixture = TestBed.createComponent(App);
+    const httpTesting = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
-    TestBed.inject(HttpTestingController)
-      .expectOne(`${environment.apiBaseUrl}/api/mail/organization-roles`)
-      .flush([]);
+    httpTesting.expectOne(organizationRolesUrl).flush([]);
+    await Promise.resolve();
+    expectUserRolesRequest(httpTesting, 'construction contractor').flush([]);
     await fixture.whenStable();
 
     const app = fixture.componentInstance;
@@ -30,10 +34,11 @@ describe('App', () => {
 
   it('should render title', async () => {
     const fixture = TestBed.createComponent(App);
+    const httpTesting = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
-    TestBed.inject(HttpTestingController)
-      .expectOne(`${environment.apiBaseUrl}/api/mail/organization-roles`)
-      .flush([]);
+    httpTesting.expectOne(organizationRolesUrl).flush([]);
+    await Promise.resolve();
+    expectUserRolesRequest(httpTesting, 'construction contractor').flush([]);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -41,12 +46,13 @@ describe('App', () => {
     expect(compiled.querySelector('h1')?.textContent).toContain('HTML Email Composer');
   });
 
-  it('should render organization role options from the API', async () => {
+  it('should render organization role options from the API and default to construction contractor', async () => {
     const fixture = TestBed.createComponent(App);
+    const httpTesting = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
-    TestBed.inject(HttpTestingController)
-      .expectOne(`${environment.apiBaseUrl}/api/mail/organization-roles`)
-      .flush(['Accounting', 'Operations']);
+    httpTesting.expectOne(organizationRolesUrl).flush(['Accounting', 'Construction Contractor']);
+    await Promise.resolve();
+    expectUserRolesRequest(httpTesting, 'Construction Contractor').flush(['WFM Administrator']);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -55,6 +61,54 @@ describe('App', () => {
     ).map((option) => option.textContent?.trim());
 
     expect(options).toContain('Accounting');
-    expect(options).toContain('Operations');
+    expect(options).toContain('Construction Contractor');
+    expect(fixture.componentInstance.selectedOrganizationRole).toBe('Construction Contractor');
   });
+
+  it('should render user role options based on organization role and default to WFM Administrator', async () => {
+    const fixture = TestBed.createComponent(App);
+    const httpTesting = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    httpTesting.expectOne(organizationRolesUrl).flush(['Construction Contractor']);
+    await Promise.resolve();
+    expectUserRolesRequest(httpTesting, 'Construction Contractor').flush([
+      'Project Manager',
+      'WFM Administrator'
+    ]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const options = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('select[name="userRole"] option')
+    ).map((option) => option.textContent?.trim());
+
+    expect(options).toContain('Project Manager');
+    expect(options).toContain('WFM Administrator');
+    expect(fixture.componentInstance.selectedUserRole).toBe('WFM Administrator');
+  });
+
+  it('should reload user role options when the organization role changes', async () => {
+    const fixture = TestBed.createComponent(App);
+    const httpTesting = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    httpTesting.expectOne(organizationRolesUrl).flush(['Construction Contractor', 'Operations']);
+    await Promise.resolve();
+    expectUserRolesRequest(httpTesting, 'Construction Contractor').flush(['WFM Administrator']);
+    await fixture.whenStable();
+
+    fixture.componentInstance.onOrganizationRoleChange('Operations');
+    await Promise.resolve();
+    expectUserRolesRequest(httpTesting, 'Operations').flush(['Supervisor']);
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.userRoles).toEqual(['Supervisor']);
+    expect(fixture.componentInstance.selectedUserRole).toBe('Supervisor');
+  });
+
+  function expectUserRolesRequest(httpTesting: HttpTestingController, organizationRole: string) {
+    return httpTesting.expectOne((request) =>
+      request.url === userRolesUrl &&
+      request.params.get('organizationRole') === organizationRole
+    );
+  }
 });

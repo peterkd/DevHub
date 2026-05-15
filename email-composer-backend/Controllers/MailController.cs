@@ -35,6 +35,24 @@ public sealed class MailController : ControllerBase
         }
     }
 
+    [HttpGet("user-roles")]
+    public async Task<IActionResult> GetUserRoles(
+        [FromQuery] string organizationRole,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var userRoles =
+                await _sqlRecipientService.GetUserRolesAsync(organizationRole, cancellationToken);
+
+            return Ok(userRoles);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpPost("send")]
     public async Task<IActionResult> SendMail(
         [FromBody] SendMailRequest request,
@@ -52,6 +70,7 @@ public sealed class MailController : ControllerBase
                 var sqlRecipients =
                     await _sqlRecipientService.GetRecipientEmailAddressesAsync(
                         request.OrganizationRole ?? string.Empty,
+                        request.UserRole ?? string.Empty,
                         cancellationToken);
 
                 request.ToRecipients = request.ToRecipients
