@@ -54,7 +54,7 @@ p {
 .form-grid {
   display: grid;
   gap: 1rem;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 label {
@@ -87,16 +87,9 @@ select:disabled {
   cursor: not-allowed;
 }
 
-.toolbar-row {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.toolbar-row small {
+.recipient-hint {
   color: #94a3b8;
+  grid-column: 1 / -1;
 }
 
 .organization-role-option,
@@ -183,8 +176,7 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 
-  .toolbar-row {
-    flex-direction: column;
-    align-items: start;
+  .image-input {
+    width: 100%;
   }
 }

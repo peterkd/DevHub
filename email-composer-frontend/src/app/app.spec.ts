@@ -42,6 +42,32 @@ describe('App', () => {
     expect(compiled.querySelector('h1')?.textContent).toContain('HTML Email Composer');
   });
 
+  it('should render composer controls in the requested order', async () => {
+    const fixture = TestBed.createComponent(App);
+    const httpTesting = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    httpTesting.expectOne(organizationRolesUrl).flush([]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const controls = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll(
+        '.form-grid input, .form-grid select'
+      )
+    ).map((control) => {
+      const input = control as HTMLInputElement | HTMLSelectElement;
+      return input.name || input.type;
+    });
+
+    expect(controls).toEqual([
+      'subject',
+      'organizationRole',
+      'userRole',
+      'toRecipients',
+      'file'
+    ]);
+  });
+
   it('should render organization role options from the API and default to Select Role', async () => {
     const fixture = TestBed.createComponent(App);
     const httpTesting = TestBed.inject(HttpTestingController);
