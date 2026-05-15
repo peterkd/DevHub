@@ -12,4 +12,8 @@ public sealed class SendMailRequest
 
     [MinLength(1)]
     public List<string> ToRecipients { get; set; } = [];
+
+    public bool IncludeSqlRecipients { get; set; }
+
+    public string? OrganizationRole { get; set; }
 }

@@ -12,7 +12,9 @@ This repository contains:
 
 - Rich text editor for HTML body
 - Insert local image files into editor as inline base64 images
-- To/Subject fields
+- Manual comma-separated recipient textbox
+- Optional SQL recipient inclusion filtered by selected organization role (appended to manual recipients when selected)
+- Subject field
 - Calls backend endpoint `POST /api/mail/send`
 
 ### Run
@@ -43,6 +45,26 @@ Configure these values in `email-composer-backend/appsettings.Development.json` 
 
 The Azure app registration requires **Application** permissions such as `Mail.Send`, with admin consent.
 
+### SQL recipient source
+
+The backend can optionally load recipients from Azure SQL using connection string key:
+
+```json
+"ConnectionStrings": {
+  "AzureSqlDatabase": "<sql-connection-string>"
+}
+```
+
+The frontend loads organization role choices from:
+
+```sql
+SELECT distinct [OrganizationRole]
+FROM [dbo].[WorkerRole]
+ORDER BY [OrganizationRole]
+```
+
+If the request includes `"includeSqlRecipients": true`, SQL recipients for the selected `"organizationRole"` are appended to the manually provided recipients and deduplicated.
+
 ### Run
 
 ```bash
@@ -55,12 +77,20 @@ Backend listens on `http://localhost:5000` by default via launch settings.
 
 ## API contract
 
+`GET /api/mail/organization-roles`
+
+```json
+["Accounting", "Operations"]
+```
+
 `POST /api/mail/send`
 
 ```json
 {
   "subject": "Hello",
   "bodyHtml": "<p>Message body</p>",
-  "toRecipients": ["person@contoso.com"]
+  "toRecipients": ["person@contoso.com", "team@contoso.com"],
+  "includeSqlRecipients": true,
+  "organizationRole": "Operations"
 }
 ```

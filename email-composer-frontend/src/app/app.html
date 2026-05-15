@@ -27,7 +27,36 @@
         <span>Insert image</span>
         <input type="file" accept="image/*" (change)="insertImage($event)" />
       </label>
-      <small>Tip: images are embedded inline in the HTML body.</small>
+      <label class="sql-option">
+        <input
+          type="checkbox"
+          name="includeSqlRecipients"
+          [(ngModel)]="includeSqlRecipients"
+        />
+        <span>Include SQL recipient list</span>
+      </label>
+      <label class="organization-role-option">
+        <span>Organization role</span>
+        <select
+          name="organizationRole"
+          [(ngModel)]="selectedOrganizationRole"
+          [disabled]="!includeSqlRecipients || isLoadingOrganizationRoles || organizationRoles.length === 0"
+        >
+          <option value="" disabled>
+            {{ isLoadingOrganizationRoles ? 'Loading organization roles...' : 'Select organizationRole' }}
+          </option>
+          @for (organizationRole of organizationRoles; track organizationRole) {
+            <option [value]="organizationRole">{{ organizationRole }}</option>
+          }
+        </select>
+      </label>
+      <small>
+        @if (organizationRolesLoadFailed) {
+          Unable to load organization roles.
+        } @else {
+          SQL recipients are appended to manual recipients when checked.
+        }
+      </small>
     </div>
 
     <section class="editor-shell">
@@ -36,7 +65,7 @@
         [(ngModel)]="bodyHtml"
         name="bodyHtml"
         [modules]="editorModules"
-        [style]="{ height: '340px' }"
+        [style]="{ height: '420px' }"
         format="html"
         placeholder="Compose HTML email body..."
       ></quill-editor>

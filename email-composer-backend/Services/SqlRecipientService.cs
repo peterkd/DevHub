@@ -7,37 +7,31 @@ public sealed class SqlRecipientService
 {
     private const string ConnectionStringName = "AzureSqlDatabase";
 
+    private const string OrganizationRoleQuery = """
+        SELECT distinct [OrganizationRole]
+        FROM [dbo].[WorkerRole]
+        ORDER BY [OrganizationRole]
+        """;
+
     private const string RecipientEmailQuery = """
         WITH WorkerRoles AS (
             SELECT
                 Worker.[Id] AS WorkerId,
-                Worker.[Role] AS RoleName
-            FROM [dbo].[Worker] Worker
-            UNION
-            SELECT
-                Worker.[Id] AS WorkerId,
-                WR.[Name] AS RoleName
+                WR.[OrganizationRole] AS OrganizationRole
             FROM [dbo].[Worker] Worker
             LEFT JOIN [dbo].[WorkerRoleAssignment] WRA ON WRA.[WorkerId] = Worker.[Id]
             INNER JOIN [dbo].[WorkerRole] WR ON WR.[Id] = WRA.[RoleId]
         ),
-        WorkerRolesAgg AS (
-            SELECT
-                WorkerId,
-                STRING_AGG(RoleName, ', ') AS Roles
-            FROM WorkerRoles
-            GROUP BY WorkerId
-        ),
-        CompanyActiveWfmAdmins AS (
+        ActiveWorkersForOrganizationRole AS (
             SELECT
                 Worker.[EmailAddress]
             FROM [dbo].[Worker] Worker
             INNER JOIN WorkerRoles ON WorkerRoles.WorkerId = Worker.[Id]
-            WHERE WorkerRoles.RoleName = 'WFM Administrator' AND Worker.[Status] = 'A'
+            WHERE WorkerRoles.OrganizationRole = @OrganizationRole AND Worker.[Status] = 'A'
         )
         SELECT DISTINCT
             EmailAddress
-        FROM CompanyActiveWfmAdmins
+        FROM ActiveWorkersForOrganizationRole
         WHERE EmailAddress IS NOT NULL AND LTRIM(RTRIM(EmailAddress)) <> ''
         ORDER BY EmailAddress;
         """;
@@ -49,7 +43,76 @@ public sealed class SqlRecipientService
         _configuration = configuration;
     }
 
-    public async Task<IReadOnlyList<string>> GetRecipientEmailAddressesAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<string>> GetOrganizationRolesAsync(CancellationToken cancellationToken)
+    {
+        var roles = new List<string>();
+        var seenRoles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        await ExecuteSqlAsync(
+            OrganizationRoleQuery,
+            async command =>
+            {
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+                while (await reader.ReadAsync(cancellationToken))
+                {
+                    if (reader.IsDBNull(0))
+                    {
+                        continue;
+                    }
+
+                    var organizationRole = reader.GetString(0).Trim();
+                    if (organizationRole.Length > 0 && seenRoles.Add(organizationRole))
+                    {
+                        roles.Add(organizationRole);
+                    }
+                }
+            },
+            "Unable to load organization roles from Azure SQL.",
+            cancellationToken);
+
+        return roles;
+    }
+
+    public async Task<IReadOnlyList<string>> GetRecipientEmailAddressesAsync(
+        string organizationRole,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(organizationRole))
+        {
+            throw new InvalidOperationException(
+                "Select an organization role before including SQL recipients.");
+        }
+
+        var recipients = new List<string>();
+        var seenRecipients = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        await ExecuteSqlAsync(
+            RecipientEmailQuery,
+            async command =>
+            {
+                command.Parameters.AddWithValue("@OrganizationRole", organizationRole.Trim());
+
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+                while (await reader.ReadAsync(cancellationToken))
+                {
+                    var emailAddress = reader.GetString(0).Trim();
+                    if (seenRecipients.Add(emailAddress))
+                    {
+                        recipients.Add(emailAddress);
+                    }
+                }
+            },
+            "Unable to load recipient email addresses from Azure SQL.",
+            cancellationToken);
+
+        return recipients;
+    }
+
+    private async Task ExecuteSqlAsync(
+        string query,
+        Func<SqlCommand, Task> executeCommand,
+        string errorMessage,
+        CancellationToken cancellationToken)
     {
         var connectionString = _configuration.GetConnectionString(ConnectionStringName);
         if (string.IsNullOrWhiteSpace(connectionString))
@@ -58,39 +121,19 @@ public sealed class SqlRecipientService
                 $"Azure SQL connection string is missing. Configure ConnectionStrings:{ConnectionStringName}.");
         }
 
-        var recipients = new List<string>();
-        var seenRecipients = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
         try
         {
             await using var connection = new SqlConnection(connectionString);
             await connection.OpenAsync(cancellationToken);
 
-            await using var command = new SqlCommand(RecipientEmailQuery, connection);
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
-
-            while (await reader.ReadAsync(cancellationToken))
-            {
-                var emailAddress = reader.GetString(0).Trim();
-                if (seenRecipients.Add(emailAddress))
-                {
-                    recipients.Add(emailAddress);
-                }
-            }
+            await using var command = new SqlCommand(query, connection);
+            await executeCommand(command);
         }
         catch (SqlException ex)
         {
             throw new InvalidOperationException(
-                "Unable to load recipient email addresses from Azure SQL.",
+                errorMessage,
                 ex);
         }
-
-        if (recipients.Count == 0)
-        {
-            throw new InvalidOperationException(
-                "No active WFM Administrator recipient email addresses were found.");
-        }
-
-        return recipients;
     }
 }

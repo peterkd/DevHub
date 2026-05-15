@@ -1,8 +1,17 @@
-@import '@angular/material/prebuilt-themes/indigo-pink.css';
+@import '@angular/material/prebuilt-themes/pink-bluegrey.css';
 @import 'quill/dist/quill.snow.css';
 
 html,
 body {
   margin: 0;
-  background: #f7f7fa;
+  background: #0b1120;
+  color: #e5e7eb;
+  font-family:
+    Inter,
+    'Segoe UI Variable',
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    sans-serif;
 }
