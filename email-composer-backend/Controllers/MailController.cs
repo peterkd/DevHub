@@ -63,6 +63,12 @@ public sealed class MailController : ControllerBase
             return ValidationProblem(ModelState);
         }
 
+        request.ToRecipients = NormalizeRecipients(request.ToRecipients);
+        if (!request.IncludeSqlRecipients && request.ToRecipients.Count == 0)
+        {
+            return BadRequest(new { message = "Add at least one recipient or include SQL recipients." });
+        }
+
         try
         {
             if (request.IncludeSqlRecipients)
@@ -73,12 +79,12 @@ public sealed class MailController : ControllerBase
                         request.UserRole ?? string.Empty,
                         cancellationToken);
 
-                request.ToRecipients = request.ToRecipients
-                    .Concat(sqlRecipients)
-                    .Select(email => email.Trim())
-                    .Where(email => email.Length > 0)
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .ToList();
+                request.ToRecipients = NormalizeRecipients(request.ToRecipients.Concat(sqlRecipients));
+            }
+
+            if (request.ToRecipients.Count == 0)
+            {
+                return BadRequest(new { message = "No recipients were found for this send request." });
             }
 
             await _graphMailService.SendMailAsync(request, cancellationToken);
@@ -88,5 +94,14 @@ public sealed class MailController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
+    }
+
+    private static List<string> NormalizeRecipients(IEnumerable<string>? recipients)
+    {
+        return (recipients ?? [])
+            .Where(email => !string.IsNullOrWhiteSpace(email))
+            .Select(email => email.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
     }
 }

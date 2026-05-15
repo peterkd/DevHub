@@ -105,6 +105,35 @@ describe('App', () => {
     expect(fixture.componentInstance.selectedUserRole).toBe('Supervisor');
   });
 
+  it('should allow sending with empty manual recipients when SQL recipients are selected', async () => {
+    const fixture = TestBed.createComponent(App);
+    const httpTesting = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    httpTesting.expectOne(organizationRolesUrl).flush(['Construction Contractor']);
+    await Promise.resolve();
+    expectUserRolesRequest(httpTesting, 'Construction Contractor').flush(['WFM Administrator']);
+    await fixture.whenStable();
+
+    const app = fixture.componentInstance;
+    app.includeSqlRecipients = true;
+    app.subject = 'Project update';
+    app.bodyHtml = '<p>Hello</p>';
+    app.toRecipients = '';
+
+    const sendPromise = app.sendMail();
+    const sendRequest = httpTesting.expectOne(`${environment.apiBaseUrl}/api/mail/send`);
+    expect(sendRequest.request.body).toEqual({
+      subject: 'Project update',
+      bodyHtml: '<p>Hello</p>',
+      includeSqlRecipients: true,
+      organizationRole: 'Construction Contractor',
+      userRole: 'WFM Administrator',
+      toRecipients: []
+    });
+    sendRequest.flush({ message: 'Mail sent.' });
+    await sendPromise;
+  });
+
   function expectUserRolesRequest(httpTesting: HttpTestingController, organizationRole: string) {
     return httpTesting.expectOne((request) =>
       request.url === userRolesUrl &&

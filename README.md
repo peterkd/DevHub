@@ -74,7 +74,7 @@ ORDER BY [Name]
 
 The frontend defaults `"organizationRole"` to `"construction contractor"` and `"userRole"` to `"WFM Administrator"` when those values are available.
 
-If the request includes `"includeSqlRecipients": true`, SQL recipients for the selected `"organizationRole"` and `"userRole"` are appended to the manually provided recipients and deduplicated.
+If the request includes `"includeSqlRecipients": true`, SQL recipients for the selected `"organizationRole"` and `"userRole"` are appended to the manually provided recipients and deduplicated. The manual `"toRecipients"` list may be empty when SQL recipients are included.
 
 ### Run
 
