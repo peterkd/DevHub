@@ -1,5 +1,5 @@
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { Component, ViewChild, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { QuillEditorComponent, QuillModule } from 'ngx-quill';
 import Quill from 'quill';
@@ -12,15 +12,40 @@ import { environment } from '../environments/environment';
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
-export class App {
+export class App implements OnInit {
   @ViewChild(QuillEditorComponent) editorComponent?: QuillEditorComponent;
   private readonly http = inject(HttpClient);
 
   toRecipients = '';
   subject = '';
   bodyHtml = '';
+  organizationRoles: string[] = [];
+  selectedOrganizationRole = '';
+  isLoadingOrganizationRoles = false;
   isSending = false;
   statusMessage = '';
+
+  ngOnInit(): void {
+    void this.loadOrganizationRoles();
+  }
+
+  async loadOrganizationRoles(): Promise<void> {
+    this.isLoadingOrganizationRoles = true;
+
+    try {
+      const roles = await firstValueFrom(
+        this.http.get<string[]>(`${environment.apiBaseUrl}/api/roles/organization-roles`)
+      );
+      this.organizationRoles = roles;
+      if (roles.length > 0 && !this.selectedOrganizationRole) {
+        this.selectedOrganizationRole = roles[0];
+      }
+    } catch {
+      this.statusMessage = 'Failed to load organization roles.';
+    } finally {
+      this.isLoadingOrganizationRoles = false;
+    }
+  }
 
   readonly editorModules = {
     toolbar: [

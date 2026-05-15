@@ -7,6 +7,25 @@
 
     <div class="form-grid">
       <label>
+        Organization role
+        <select
+          name="organizationRole"
+          [(ngModel)]="selectedOrganizationRole"
+          [disabled]="isLoadingOrganizationRoles || organizationRoles.length === 0"
+        >
+          @if (isLoadingOrganizationRoles) {
+            <option value="">Loading roles...</option>
+          } @else if (organizationRoles.length === 0) {
+            <option value="">No roles available</option>
+          } @else {
+            @for (role of organizationRoles; track role) {
+              <option [value]="role">{{ role }}</option>
+            }
+          }
+        </select>
+      </label>
+
+      <label>
         To (comma-separated)
         <input
           type="text"

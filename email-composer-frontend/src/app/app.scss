@@ -53,7 +53,7 @@ p {
 .form-grid {
   display: grid;
   gap: 1rem;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr 2fr 1fr;
 }
 
 label {
@@ -64,7 +64,8 @@ label {
 }
 
 input[type='text'],
-input[type='file'] {
+input[type='file'],
+select {
   font: inherit;
   padding: 0.7rem 0.8rem;
   border: 1px solid #c8d2e2;
@@ -73,7 +74,8 @@ input[type='file'] {
 }
 
 input[type='text']:focus,
-input[type='file']:focus {
+input[type='file']:focus,
+select:focus {
   outline: 2px solid #3f51b5;
   outline-offset: 1px;
 }

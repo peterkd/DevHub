@@ -13,6 +13,7 @@ This repository contains:
 - Rich text editor for HTML body
 - Insert local image files into editor as inline base64 images
 - To/Subject fields
+- Organization role dropdown loaded from Azure SQL (`WorkerRole.OrganizationRole`)
 - Calls backend endpoint `POST /api/mail/send`
 
 ### Run
@@ -54,6 +55,14 @@ dotnet run
 Backend listens on `http://localhost:5000` by default via launch settings.
 
 ## API contract
+
+`GET /api/roles/organization-roles`
+
+Returns distinct organization roles:
+
+```json
+["Role A", "Role B"]
+```
 
 `POST /api/mail/send`
 
