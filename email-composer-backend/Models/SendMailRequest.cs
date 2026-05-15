@@ -10,8 +10,9 @@ public sealed class SendMailRequest
     [Required]
     public string BodyHtml { get; set; } = string.Empty;
 
-    [MinLength(1)]
     public List<string> ToRecipients { get; set; } = [];
 
     public bool IncludeSqlRecipients { get; set; }
+
+    public string? OrganizationRole { get; set; }
 }

@@ -1,5 +1,5 @@
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { Component, ViewChild, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { QuillEditorComponent, QuillModule } from 'ngx-quill';
 import Quill from 'quill';
@@ -12,12 +12,16 @@ import { environment } from '../environments/environment';
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
-export class App {
+export class App implements OnInit {
   @ViewChild(QuillEditorComponent) editorComponent?: QuillEditorComponent;
   private readonly http = inject(HttpClient);
 
   toRecipients = '';
   includeSqlRecipients = false;
+  organizationRole = '';
+  organizationRoles: string[] = [];
+  isLoadingOrganizationRoles = false;
+  organizationRoleLoadMessage = '';
   subject = '';
   bodyHtml = '';
   isSending = false;
@@ -35,12 +39,39 @@ export class App {
     ]
   };
 
+  ngOnInit(): void {
+    void this.loadOrganizationRoles();
+  }
+
+  async loadOrganizationRoles(): Promise<void> {
+    this.isLoadingOrganizationRoles = true;
+    this.organizationRoleLoadMessage = '';
+
+    try {
+      this.organizationRoles = await firstValueFrom(
+        this.http.get<string[]>(`${environment.apiBaseUrl}/api/mail/organization-roles`)
+      );
+    } catch {
+      this.organizationRoles = [];
+      this.organizationRole = '';
+      this.organizationRoleLoadMessage = 'Unable to load organization roles.';
+    } finally {
+      this.isLoadingOrganizationRoles = false;
+    }
+  }
+
   async sendMail(): Promise<void> {
     if (this.isSending) {
       return;
     }
 
     this.statusMessage = '';
+
+    if (this.includeSqlRecipients && !this.organizationRole) {
+      this.statusMessage = 'Select an organization role before including SQL recipients.';
+      return;
+    }
+
     this.isSending = true;
 
     try {
@@ -48,6 +79,7 @@ export class App {
         subject: this.subject,
         bodyHtml: this.bodyHtml,
         includeSqlRecipients: this.includeSqlRecipients,
+        organizationRole: this.includeSqlRecipients ? this.organizationRole : null,
         toRecipients: this.toRecipients
           .split(',')
           .map((email) => email.trim())
