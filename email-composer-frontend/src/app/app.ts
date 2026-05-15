@@ -1,5 +1,5 @@
-import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { Component, ViewChild, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { QuillEditorComponent, QuillModule } from 'ngx-quill';
 import Quill from 'quill';
@@ -8,16 +8,20 @@ import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
-  imports: [FormsModule, HttpClientModule, QuillModule],
+  imports: [FormsModule, QuillModule],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
-export class App {
+export class App implements OnInit {
   @ViewChild(QuillEditorComponent) editorComponent?: QuillEditorComponent;
   private readonly http = inject(HttpClient);
 
   toRecipients = '';
   includeSqlRecipients = false;
+  organizationRole = '';
+  organizationRoles: string[] = [];
+  organizationRolesLoadError = '';
+  isLoadingOrganizationRoles = false;
   subject = '';
   bodyHtml = '';
   isSending = false;
@@ -35,8 +39,17 @@ export class App {
     ]
   };
 
+  ngOnInit(): void {
+    void this.loadOrganizationRoles();
+  }
+
   async sendMail(): Promise<void> {
     if (this.isSending) {
+      return;
+    }
+
+    if (this.includeSqlRecipients && !this.organizationRole.trim()) {
+      this.statusMessage = 'Select an organization role before including SQL recipients.';
       return;
     }
 
@@ -48,6 +61,7 @@ export class App {
         subject: this.subject,
         bodyHtml: this.bodyHtml,
         includeSqlRecipients: this.includeSqlRecipients,
+        organizationRole: this.organizationRole.trim(),
         toRecipients: this.toRecipients
           .split(',')
           .map((email) => email.trim())
@@ -86,6 +100,22 @@ export class App {
       editor.setSelection(index + 1, 0, Quill.sources.SILENT);
     } finally {
       input.value = '';
+    }
+  }
+
+  private async loadOrganizationRoles(): Promise<void> {
+    this.isLoadingOrganizationRoles = true;
+    this.organizationRolesLoadError = '';
+
+    try {
+      this.organizationRoles = await firstValueFrom(
+        this.http.get<string[]>(`${environment.apiBaseUrl}/api/mail/organization-roles`)
+      );
+    } catch {
+      this.organizationRoles = [];
+      this.organizationRolesLoadError = 'Failed to load organization roles.';
+    } finally {
+      this.isLoadingOrganizationRoles = false;
     }
   }
 

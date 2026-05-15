@@ -20,6 +20,27 @@
         Subject
         <input type="text" name="subject" [(ngModel)]="subject" placeholder="Quarterly update" />
       </label>
+
+      <label>
+        Organization role
+        <select
+          name="organizationRole"
+          [(ngModel)]="organizationRole"
+          [disabled]="!includeSqlRecipients || isLoadingOrganizationRoles || organizationRoles.length === 0"
+        >
+          <option value="">
+            {{ isLoadingOrganizationRoles ? 'Loading organization roles...' : 'Select organization role' }}
+          </option>
+          @for (organizationRoleOption of organizationRoles; track organizationRoleOption) {
+            <option [value]="organizationRoleOption">{{ organizationRoleOption }}</option>
+          }
+        </select>
+        @if (organizationRolesLoadError) {
+          <small class="field-error">{{ organizationRolesLoadError }}</small>
+        } @else if (!includeSqlRecipients) {
+          <small>Enable SQL recipient list to choose an organization role.</small>
+        }
+      </label>
     </div>
 
     <div class="toolbar-row">
