@@ -13,9 +13,6 @@ import { environment } from '../environments/environment';
   styleUrl: './app.scss'
 })
 export class App implements OnInit {
-  private static readonly DefaultOrganizationRole = 'construction contractor';
-  private static readonly DefaultUserRole = 'WFM Administrator';
-
   @ViewChild(QuillEditorComponent) editorComponent?: QuillEditorComponent;
   private readonly http = inject(HttpClient);
   private userRoleRequestId = 0;
@@ -23,9 +20,9 @@ export class App implements OnInit {
   toRecipients = '';
   includeSqlRecipients = false;
   organizationRoles: string[] = [];
-  selectedOrganizationRole = App.DefaultOrganizationRole;
+  selectedOrganizationRole = '';
   userRoles: string[] = [];
-  selectedUserRole = App.DefaultUserRole;
+  selectedUserRole = '';
   isLoadingOrganizationRoles = false;
   organizationRolesLoadFailed = false;
   isLoadingUserRoles = false;
@@ -47,6 +44,25 @@ export class App implements OnInit {
     ]
   };
 
+  get isSendDisabled(): boolean {
+    return this.isSending || (!this.hasValidManualRecipient && !this.hasSelectedSqlRecipientRole);
+  }
+
+  private get hasSelectedSqlRecipientRole(): boolean {
+    return (
+      this.includeSqlRecipients &&
+      this.selectedOrganizationRole.length > 0 &&
+      this.selectedUserRole.length > 0
+    );
+  }
+
+  private get hasValidManualRecipient(): boolean {
+    return this.toRecipients
+      .split(',')
+      .map((email) => email.trim())
+      .some((email) => this.isValidEmailAddress(email));
+  }
+
   ngOnInit(): void {
     void this.loadOrganizationRoles();
   }
@@ -58,12 +74,19 @@ export class App implements OnInit {
 
     this.statusMessage = '';
 
-    if (this.includeSqlRecipients && !this.selectedOrganizationRole) {
+    const includeSqlRecipients = this.hasSelectedSqlRecipientRole;
+
+    if (!this.hasValidManualRecipient && !includeSqlRecipients) {
+      this.statusMessage = 'Enter a valid email address or select a SQL recipient role.';
+      return;
+    }
+
+    if (includeSqlRecipients && !this.selectedOrganizationRole) {
       this.statusMessage = 'Select an organization role before sending to SQL recipients.';
       return;
     }
 
-    if (this.includeSqlRecipients && !this.selectedUserRole) {
+    if (includeSqlRecipients && !this.selectedUserRole) {
       this.statusMessage = 'Select a user role before sending to SQL recipients.';
       return;
     }
@@ -74,9 +97,9 @@ export class App implements OnInit {
       const payload = {
         subject: this.subject,
         bodyHtml: this.bodyHtml,
-        includeSqlRecipients: this.includeSqlRecipients,
-        organizationRole: this.includeSqlRecipients ? this.selectedOrganizationRole : null,
-        userRole: this.includeSqlRecipients ? this.selectedUserRole : null,
+        includeSqlRecipients,
+        organizationRole: includeSqlRecipients ? this.selectedOrganizationRole : null,
+        userRole: includeSqlRecipients ? this.selectedUserRole : null,
         toRecipients: this.toRecipients
           .split(',')
           .map((email) => email.trim())
@@ -131,12 +154,6 @@ export class App implements OnInit {
       this.organizationRoles = await firstValueFrom(
         this.http.get<string[]>(`${environment.apiBaseUrl}/api/mail/organization-roles`)
       );
-      this.selectedOrganizationRole = this.findMatchingOption(
-        this.organizationRoles,
-        App.DefaultOrganizationRole,
-        this.selectedOrganizationRole
-      );
-      await this.loadUserRoles(this.selectedOrganizationRole);
     } catch {
       this.organizationRoles = [];
       this.organizationRolesLoadFailed = true;
@@ -169,11 +186,6 @@ export class App implements OnInit {
       }
 
       this.userRoles = userRoles;
-      this.selectedUserRole = this.findMatchingOption(
-        this.userRoles,
-        App.DefaultUserRole,
-        this.userRoles[0] ?? ''
-      );
     } catch {
       if (requestId !== this.userRoleRequestId) {
         return;
@@ -188,8 +200,8 @@ export class App implements OnInit {
     }
   }
 
-  private findMatchingOption(options: string[], preferred: string, fallback: string): string {
-    return options.find((option) => option.toLowerCase() === preferred.toLowerCase()) ?? fallback;
+  private isValidEmailAddress(email: string): boolean {
+    return /^[^\s@,]+@[^\s@,]+\.[^\s@,]+$/.test(email);
   }
 
   private fileToDataUrl(file: File): Promise<string> {

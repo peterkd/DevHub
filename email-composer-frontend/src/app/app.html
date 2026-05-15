@@ -44,7 +44,7 @@
           [disabled]="!includeSqlRecipients || isLoadingOrganizationRoles || organizationRoles.length === 0"
         >
           <option value="" disabled>
-            {{ isLoadingOrganizationRoles ? 'Loading organization roles...' : 'Select organizationRole' }}
+            {{ isLoadingOrganizationRoles ? 'Loading organization roles...' : 'Select Role' }}
           </option>
           @for (organizationRole of organizationRoles; track organizationRole) {
             <option [value]="organizationRole">{{ organizationRole }}</option>
@@ -64,7 +64,7 @@
           "
         >
           <option value="" disabled>
-            {{ isLoadingUserRoles ? 'Loading user roles...' : 'Select user role' }}
+            {{ isLoadingUserRoles ? 'Loading user roles...' : 'Select Role' }}
           </option>
           @for (userRole of userRoles; track userRole) {
             <option [value]="userRole">{{ userRole }}</option>
@@ -95,7 +95,7 @@
     </section>
 
     <div class="actions">
-      <button type="button" (click)="sendMail()" [disabled]="isSending">
+      <button type="button" (click)="sendMail()" [disabled]="isSendDisabled">
         {{ isSending ? 'Sending...' : 'Send email' }}
       </button>
       <span class="status">{{ statusMessage }}</span>
