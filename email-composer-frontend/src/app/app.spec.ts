@@ -16,35 +16,38 @@ describe('App', () => {
     TestBed.inject(HttpTestingController).verify();
   });
 
-  it('should create the app', () => {
+  it('should create the app', async () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     TestBed.inject(HttpTestingController)
       .expectOne(`${environment.apiBaseUrl}/api/mail/organization-roles`)
       .flush([]);
+    await fixture.whenStable();
 
     const app = fixture.componentInstance;
     expect(app).toBeTruthy();
   });
 
-  it('should render title', () => {
+  it('should render title', async () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     TestBed.inject(HttpTestingController)
       .expectOne(`${environment.apiBaseUrl}/api/mail/organization-roles`)
       .flush([]);
+    await fixture.whenStable();
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('h1')?.textContent).toContain('HTML Email Composer');
   });
 
-  it('should render organization role options from the API', () => {
+  it('should render organization role options from the API', async () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     TestBed.inject(HttpTestingController)
       .expectOne(`${environment.apiBaseUrl}/api/mail/organization-roles`)
       .flush(['Accounting', 'Operations']);
+    await fixture.whenStable();
     fixture.detectChanges();
 
     const options = Array.from(

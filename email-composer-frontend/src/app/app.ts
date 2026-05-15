@@ -1,4 +1,4 @@
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { QuillEditorComponent, QuillModule } from 'ngx-quill';
@@ -8,7 +8,7 @@ import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
-  imports: [FormsModule, HttpClientModule, QuillModule],
+  imports: [FormsModule, QuillModule],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
