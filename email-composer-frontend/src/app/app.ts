@@ -1,5 +1,5 @@
-import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { Component, ViewChild, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { QuillEditorComponent, QuillModule } from 'ngx-quill';
 import Quill from 'quill';
@@ -8,16 +8,20 @@ import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
-  imports: [FormsModule, HttpClientModule, QuillModule],
+  imports: [FormsModule, QuillModule],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
-export class App {
+export class App implements OnInit {
   @ViewChild(QuillEditorComponent) editorComponent?: QuillEditorComponent;
   private readonly http = inject(HttpClient);
 
   toRecipients = '';
   includeSqlRecipients = false;
+  organizationRoles: string[] = [];
+  selectedOrganizationRole = '';
+  isLoadingOrganizationRoles = false;
+  organizationRolesLoadFailed = false;
   subject = '';
   bodyHtml = '';
   isSending = false;
@@ -35,12 +39,22 @@ export class App {
     ]
   };
 
+  ngOnInit(): void {
+    void this.loadOrganizationRoles();
+  }
+
   async sendMail(): Promise<void> {
     if (this.isSending) {
       return;
     }
 
     this.statusMessage = '';
+
+    if (this.includeSqlRecipients && !this.selectedOrganizationRole) {
+      this.statusMessage = 'Select an organization role before sending to SQL recipients.';
+      return;
+    }
+
     this.isSending = true;
 
     try {
@@ -48,6 +62,7 @@ export class App {
         subject: this.subject,
         bodyHtml: this.bodyHtml,
         includeSqlRecipients: this.includeSqlRecipients,
+        organizationRole: this.includeSqlRecipients ? this.selectedOrganizationRole : null,
         toRecipients: this.toRecipients
           .split(',')
           .map((email) => email.trim())
@@ -86,6 +101,22 @@ export class App {
       editor.setSelection(index + 1, 0, Quill.sources.SILENT);
     } finally {
       input.value = '';
+    }
+  }
+
+  private async loadOrganizationRoles(): Promise<void> {
+    this.isLoadingOrganizationRoles = true;
+    this.organizationRolesLoadFailed = false;
+
+    try {
+      this.organizationRoles = await firstValueFrom(
+        this.http.get<string[]>(`${environment.apiBaseUrl}/api/mail/organization-roles`)
+      );
+    } catch {
+      this.organizationRoles = [];
+      this.organizationRolesLoadFailed = true;
+    } finally {
+      this.isLoadingOrganizationRoles = false;
     }
   }
 
