@@ -27,14 +27,29 @@
         <span>Insert image</span>
         <input type="file" accept="image/*" (change)="insertImage($event)" />
       </label>
-      <label class="sql-option">
-        <input
-          type="checkbox"
-          name="includeSqlRecipients"
-          [(ngModel)]="includeSqlRecipients"
-        />
-        <span>Include SQL recipient list</span>
-      </label>
+      <div class="sql-controls">
+        <label class="sql-option">
+          <input
+            type="checkbox"
+            name="includeSqlRecipients"
+            [(ngModel)]="includeSqlRecipients"
+          />
+          <span>Include SQL recipient list</span>
+        </label>
+        <label class="sql-role">
+          <span>Organization role</span>
+          <select
+            name="organizationRole"
+            [(ngModel)]="selectedOrganizationRole"
+            [disabled]="isLoadingOrganizationRoles"
+          >
+            <option value="">All organization roles</option>
+            @for (role of organizationRoles; track role) {
+              <option [value]="role">{{ role }}</option>
+            }
+          </select>
+        </label>
+      </div>
       <small>Tip: SQL recipients are appended to manual recipients when checked.</small>
     </div>
 

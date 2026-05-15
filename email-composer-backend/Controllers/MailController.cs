@@ -34,7 +34,9 @@ public sealed class MailController : ControllerBase
             if (request.IncludeSqlRecipients)
             {
                 var sqlRecipients =
-                    await _sqlRecipientService.GetRecipientEmailAddressesAsync(cancellationToken);
+                    await _sqlRecipientService.GetRecipientEmailAddressesAsync(
+                        request.OrganizationRole,
+                        cancellationToken);
 
                 request.ToRecipients = request.ToRecipients
                     .Concat(sqlRecipients)
@@ -46,6 +48,21 @@ public sealed class MailController : ControllerBase
 
             await _graphMailService.SendMailAsync(request, cancellationToken);
             return Ok(new { message = "Mail sent." });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("organization-roles")]
+    public async Task<ActionResult<IReadOnlyList<string>>> GetOrganizationRoles(
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var organizationRoles = await _sqlRecipientService.GetOrganizationRolesAsync(cancellationToken);
+            return Ok(organizationRoles);
         }
         catch (InvalidOperationException ex)
         {

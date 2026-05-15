@@ -1,5 +1,5 @@
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { Component, ViewChild, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { QuillEditorComponent, QuillModule } from 'ngx-quill';
 import Quill from 'quill';
@@ -12,7 +12,7 @@ import { environment } from '../environments/environment';
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
-export class App {
+export class App implements OnInit {
   @ViewChild(QuillEditorComponent) editorComponent?: QuillEditorComponent;
   private readonly http = inject(HttpClient);
 
@@ -20,6 +20,9 @@ export class App {
   includeSqlRecipients = false;
   subject = '';
   bodyHtml = '';
+  organizationRoles: string[] = [];
+  selectedOrganizationRole = '';
+  isLoadingOrganizationRoles = false;
   isSending = false;
   statusMessage = '';
 
@@ -35,6 +38,10 @@ export class App {
     ]
   };
 
+  async ngOnInit(): Promise<void> {
+    await this.loadOrganizationRoles();
+  }
+
   async sendMail(): Promise<void> {
     if (this.isSending) {
       return;
@@ -48,6 +55,7 @@ export class App {
         subject: this.subject,
         bodyHtml: this.bodyHtml,
         includeSqlRecipients: this.includeSqlRecipients,
+        organizationRole: this.selectedOrganizationRole || null,
         toRecipients: this.toRecipients
           .split(',')
           .map((email) => email.trim())
@@ -86,6 +94,21 @@ export class App {
       editor.setSelection(index + 1, 0, Quill.sources.SILENT);
     } finally {
       input.value = '';
+    }
+  }
+
+  private async loadOrganizationRoles(): Promise<void> {
+    this.isLoadingOrganizationRoles = true;
+
+    try {
+      this.organizationRoles = await firstValueFrom(
+        this.http.get<string[]>(`${environment.apiBaseUrl}/api/mail/organization-roles`)
+      );
+    } catch {
+      this.organizationRoles = [];
+      this.statusMessage = 'Unable to load organization roles from SQL.';
+    } finally {
+      this.isLoadingOrganizationRoles = false;
     }
   }
 

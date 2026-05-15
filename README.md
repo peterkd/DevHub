@@ -14,6 +14,7 @@ This repository contains:
 - Insert local image files into editor as inline base64 images
 - Manual comma-separated recipient textbox
 - Optional SQL recipient inclusion (appended to manual recipients when selected)
+- SQL-backed organization role dropdown
 - Subject field
 - Calls backend endpoint `POST /api/mail/send`
 
@@ -57,6 +58,16 @@ The backend can optionally load recipients from Azure SQL using connection strin
 
 If the request includes `"includeSqlRecipients": true`, SQL recipients are appended to the manually provided recipients and deduplicated.
 
+Organization role options are loaded from:
+
+```sql
+SELECT DISTINCT [OrganizationRole]
+FROM [dbo].[WorkerRole]
+ORDER BY [OrganizationRole];
+```
+
+The selected role is passed as `organizationRole`. If omitted, all roles are considered.
+
 ### Run
 
 ```bash
@@ -76,6 +87,11 @@ Backend listens on `http://localhost:5000` by default via launch settings.
   "subject": "Hello",
   "bodyHtml": "<p>Message body</p>",
   "toRecipients": ["person@contoso.com", "team@contoso.com"],
-  "includeSqlRecipients": true
+  "includeSqlRecipients": true,
+  "organizationRole": "Operations"
 }
 ```
+
+`GET /api/mail/organization-roles`
+
+Returns an ordered array of organization role values for populating the dropdown.
