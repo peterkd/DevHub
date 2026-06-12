@@ -110,6 +110,9 @@
       <button type="button" (click)="sendMail()" [disabled]="isSendDisabled">
         {{ isSending ? 'Sending...' : 'Send email' }}
       </button>
+      <button type="button" (click)="sendDlnWfmAdminMail()" [disabled]="isDlnWfmAdminSendDisabled">
+        {{ isSendingDlnWfmAdmins ? 'Sending DLN emails...' : 'Send DLN WFM admin emails' }}
+      </button>
       <span class="status">{{ statusMessage }}</span>
     </div>
   </section>

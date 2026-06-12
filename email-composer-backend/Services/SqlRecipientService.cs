@@ -1,5 +1,6 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using EmailComposer.Backend.Models;
 
 namespace EmailComposer.Backend.Services;
 
@@ -54,6 +55,36 @@ public sealed class SqlRecipientService
         FROM ActiveWorkers
         WHERE EmailAddress IS NOT NULL AND LTRIM(RTRIM(EmailAddress)) <> ''
         ORDER BY EmailAddress;
+        """;
+
+    private const string CompanyActiveWfmAdminsQuery = """
+        WITH WorkerRoles AS (
+            SELECT
+                Worker.[Id] AS WorkerId,
+                Worker.[Role] AS RoleName
+            FROM [dbo].[Worker] Worker
+            UNION
+            SELECT
+                Worker.[Id] AS WorkerId,
+                WR.[Name] AS RoleName
+            FROM [dbo].[Worker] Worker
+            LEFT JOIN [dbo].[WorkerRoleAssignment] WRA ON WRA.[WorkerId] = Worker.[Id]
+            INNER JOIN [dbo].[WorkerRole] WR ON WR.Id = WRA.RoleId
+        ),
+        CompaniesWithActiveWfmAdmins AS
+        (
+            SELECT
+                Company.[Name] AS CompanyName,
+                STRING_AGG(EmailAddress, ', ') AS WfmAdminEmailAddresses
+            FROM Company
+            INNER JOIN Worker AS ActiveWorker ON ActiveWorker.[Location] = Company.[Name] AND ActiveWorker.Status = 'A'
+            INNER JOIN WorkerRoles ON WorkerRoles.WorkerId = ActiveWorker.Id AND WorkerRoles.RoleName = 'WFM Administrator'
+            GROUP BY Company.[Name]
+        )
+        SELECT
+            CompanyName,
+            WfmAdminEmailAddresses
+        FROM CompaniesWithActiveWfmAdmins
         """;
 
     private readonly IConfiguration _configuration;
@@ -171,6 +202,42 @@ public sealed class SqlRecipientService
                 }
             },
             "Unable to load recipient email addresses from Azure SQL.",
+            cancellationToken);
+
+        return recipients;
+    }
+
+    public async Task<IReadOnlyList<CompanyWfmAdminRecipient>> GetCompanyActiveWfmAdminsAsync(
+        CancellationToken cancellationToken)
+    {
+        var recipients = new List<CompanyWfmAdminRecipient>();
+
+        await ExecuteSqlAsync(
+            CompanyActiveWfmAdminsQuery,
+            async command =>
+            {
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+                while (await reader.ReadAsync(cancellationToken))
+                {
+                    if (reader.IsDBNull(0) || reader.IsDBNull(1))
+                    {
+                        continue;
+                    }
+
+                    var companyName = reader.GetString(0).Trim();
+                    var emailAddresses = reader.GetString(1)
+                        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                        .Where(email => email.Length > 0)
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToList();
+
+                    if (companyName.Length > 0 && emailAddresses.Count > 0)
+                    {
+                        recipients.Add(new CompanyWfmAdminRecipient(companyName, emailAddresses));
+                    }
+                }
+            },
+            "Unable to load active WFM administrator recipients from Azure SQL.",
             cancellationToken);
 
         return recipients;

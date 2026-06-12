@@ -31,6 +31,7 @@ export class App implements OnInit {
   subject = '';
   bodyHtml = '';
   isSending = false;
+  isSendingDlnWfmAdmins = false;
   statusMessage = '';
 
   readonly workerFunctions = environment.WorkerFunctions;
@@ -50,6 +51,10 @@ export class App implements OnInit {
 
   get isSendDisabled(): boolean {
     return this.isSending || (!this.hasValidManualRecipient && !this.hasSelectedSqlRecipientRole);
+  }
+
+  get isDlnWfmAdminSendDisabled(): boolean {
+    return this.isSendingDlnWfmAdmins || !this.subject.trim() || !this.bodyHtml.trim();
   }
 
   private get hasSelectedSqlRecipientRole(): boolean {
@@ -121,6 +126,33 @@ export class App implements OnInit {
       this.statusMessage = 'Failed to send email. Check backend logs for details.';
     } finally {
       this.isSending = false;
+    }
+  }
+
+  async sendDlnWfmAdminMail(): Promise<void> {
+    if (this.isDlnWfmAdminSendDisabled) {
+      return;
+    }
+
+    this.statusMessage = '';
+    this.isSendingDlnWfmAdmins = true;
+
+    try {
+      const result = await firstValueFrom(
+        this.http.post<{
+          sentCount: number;
+          matchedRecipientCount: number;
+        }>(`${environment.apiBaseUrl}/api/mail/send-dln-wfm-admins`, {
+          subject: this.subject,
+          bodyHtml: this.bodyHtml
+        })
+      );
+      this.statusMessage =
+        `Sent ${result.sentCount} DLN email(s) to ${result.matchedRecipientCount} matched compan${result.matchedRecipientCount === 1 ? 'y' : 'ies'}.`;
+    } catch {
+      this.statusMessage = 'Failed to send DLN WFM admin emails. Check backend logs for details.';
+    } finally {
+      this.isSendingDlnWfmAdmins = false;
     }
   }
 

@@ -227,6 +227,34 @@ describe('App', () => {
     await sendPromise;
   });
 
+  it('should send DLN WFM admin mail with the current subject and body', async () => {
+    const fixture = TestBed.createComponent(App);
+    const httpTesting = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    httpTesting.expectOne(organizationRolesUrl).flush([]);
+    await fixture.whenStable();
+
+    const app = fixture.componentInstance;
+    app.subject = 'DLN update';
+    app.bodyHtml = '<p>Attached is your DLN file.</p>';
+
+    const sendPromise = app.sendDlnWfmAdminMail();
+    const sendRequest = httpTesting.expectOne(`${environment.apiBaseUrl}/api/mail/send-dln-wfm-admins`);
+    expect(sendRequest.request.body).toEqual({
+      subject: 'DLN update',
+      bodyHtml: '<p>Attached is your DLN file.</p>'
+    });
+    sendRequest.flush({
+      companiesWithActiveWfmAdminCount: 2,
+      matchedRecipientCount: 1,
+      sentCount: 1,
+      skippedCompanies: ['Other Company']
+    });
+    await sendPromise;
+
+    expect(app.statusMessage).toContain('Sent 1 DLN email');
+  });
+
   it('should disable send until there is a valid manual email or selected user role', async () => {
     const fixture = TestBed.createComponent(App);
     const httpTesting = TestBed.inject(HttpTestingController);

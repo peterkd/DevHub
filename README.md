@@ -78,6 +78,8 @@ The Function and Position dropdowns are populated from the frontend environment 
 
 When Function, Position, Organization role, and User role are all selected, the frontend automatically includes SQL recipients for the selected `"workerFunction"`, `"position"`, `"organizationRole"`, and `"userRole"`. Those SQL recipients are appended to the manually provided recipients and deduplicated. The manual `"toRecipients"` list may be empty when SQL recipients are included.
 
+The DLN WFM admin send button uses the current subject and email body, reads matching company files from `C:\WFM\DLN\Import\CompaniesWithWFMAdmin`, finds active WFM Administrator recipients by company, attaches the matching company file, and sends one email per company.
+
 ### Run
 
 ```bash
@@ -114,5 +116,14 @@ Backend listens on `http://localhost:5000` by default via launch settings.
   "userRole": "WFM Administrator",
   "workerFunction": "Construction",
   "position": "Supervisor"
+}
+```
+
+`POST /api/mail/send-dln-wfm-admins`
+
+```json
+{
+  "subject": "DLN update",
+  "bodyHtml": "<p>Attached is your DLN file.</p>"
 }
 ```

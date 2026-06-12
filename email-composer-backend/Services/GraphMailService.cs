@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using EmailComposer.Backend.Models;
 using EmailComposer.Backend.Options;
 using Microsoft.Extensions.Options;
@@ -29,24 +30,36 @@ public sealed class GraphMailService
         graphClient.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", accessToken);
 
+        var message = new Dictionary<string, object?>
+        {
+            ["subject"] = request.Subject,
+            ["body"] = new
+            {
+                contentType = "HTML",
+                content = request.BodyHtml
+            },
+            ["toRecipients"] = request.ToRecipients.Select(email => new
+            {
+                emailAddress = new
+                {
+                    address = email
+                }
+            })
+        };
+
+        if (request.Attachments.Count > 0)
+        {
+            message["attachments"] = request.Attachments.Select(attachment => new GraphFileAttachment
+            {
+                Name = attachment.Name,
+                ContentType = attachment.ContentType,
+                ContentBytes = attachment.ContentBytes
+            });
+        }
+
         var graphPayload = new
         {
-            message = new
-            {
-                subject = request.Subject,
-                body = new
-                {
-                    contentType = "HTML",
-                    content = request.BodyHtml
-                },
-                toRecipients = request.ToRecipients.Select(email => new
-                {
-                    emailAddress = new
-                    {
-                        address = email
-                    }
-                })
-            },
+            message,
             saveToSentItems = true
         };
 
@@ -106,5 +119,20 @@ public sealed class GraphMailService
             throw new InvalidOperationException(
                 $"Graph settings are incomplete. Configure {GraphOptions.SectionName}:TenantId, ClientId, ClientSecret, and SenderUserId.");
         }
+    }
+
+    private sealed class GraphFileAttachment
+    {
+        [JsonPropertyName("@odata.type")]
+        public string ODataType { get; set; } = "#microsoft.graph.fileAttachment";
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+
+        [JsonPropertyName("contentType")]
+        public string ContentType { get; set; } = "application/octet-stream";
+
+        [JsonPropertyName("contentBytes")]
+        public string ContentBytes { get; set; } = string.Empty;
     }
 }

@@ -21,4 +21,6 @@ public sealed class SendMailRequest
     public string? WorkerFunction { get; set; }
 
     public string? Position { get; set; }
+
+    public List<MailAttachment> Attachments { get; set; } = [];
 }

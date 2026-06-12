@@ -10,13 +10,16 @@ public sealed class MailController : ControllerBase
 {
     private readonly GraphMailService _graphMailService;
     private readonly SqlRecipientService _sqlRecipientService;
+    private readonly DlnWfmAdminMailService _dlnWfmAdminMailService;
 
     public MailController(
         GraphMailService graphMailService,
-        SqlRecipientService sqlRecipientService)
+        SqlRecipientService sqlRecipientService,
+        DlnWfmAdminMailService dlnWfmAdminMailService)
     {
         _graphMailService = graphMailService;
         _sqlRecipientService = sqlRecipientService;
+        _dlnWfmAdminMailService = dlnWfmAdminMailService;
     }
 
     [HttpGet("organization-roles")]
@@ -46,6 +49,27 @@ public sealed class MailController : ControllerBase
                 await _sqlRecipientService.GetUserRolesAsync(organizationRole, cancellationToken);
 
             return Ok(userRoles);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("send-dln-wfm-admins")]
+    public async Task<IActionResult> SendDlnWfmAdminMessages(
+        [FromBody] DlnWfmAdminSendRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        try
+        {
+            var result = await _dlnWfmAdminMailService.SendAsync(request, cancellationToken);
+            return Ok(result);
         }
         catch (InvalidOperationException ex)
         {

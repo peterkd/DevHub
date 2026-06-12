@@ -20,6 +20,7 @@ builder.Services.Configure<GraphOptions>(
     builder.Configuration.GetSection(GraphOptions.SectionName));
 builder.Services.AddScoped<GraphMailService>();
 builder.Services.AddScoped<SqlRecipientService>();
+builder.Services.AddScoped<DlnWfmAdminMailService>();
 
 var app = builder.Build();
 
