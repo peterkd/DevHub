@@ -32,6 +32,7 @@ export class App implements OnInit {
   bodyHtml = '';
   isSending = false;
   isSendingDlnWfmAdmins = false;
+  isSendingInactivityAlerts = false;
   statusMessage = '';
 
   readonly workerFunctions = environment.WorkerFunctions;
@@ -55,6 +56,10 @@ export class App implements OnInit {
 
   get isDlnWfmAdminSendDisabled(): boolean {
     return this.isSendingDlnWfmAdmins || !this.subject.trim() || !this.bodyHtml.trim();
+  }
+
+  get isInactivityAlertSendDisabled(): boolean {
+    return this.isSendingInactivityAlerts || !this.subject.trim() || !this.bodyHtml.trim();
   }
 
   private get hasSelectedSqlRecipientRole(): boolean {
@@ -153,6 +158,33 @@ export class App implements OnInit {
       this.statusMessage = 'Failed to send DLN WFM admin emails. Check backend logs for details.';
     } finally {
       this.isSendingDlnWfmAdmins = false;
+    }
+  }
+
+  async sendInactivityAlerts(): Promise<void> {
+    if (this.isInactivityAlertSendDisabled) {
+      return;
+    }
+
+    this.statusMessage = '';
+    this.isSendingInactivityAlerts = true;
+
+    try {
+      const result = await firstValueFrom(
+        this.http.post<{
+          sentCount: number;
+          recipientCount: number;
+        }>(`${environment.apiBaseUrl}/api/mail/send-inactivity-alerts`, {
+          subject: this.subject,
+          bodyHtml: this.bodyHtml
+        })
+      );
+      this.statusMessage =
+        `Sent ${result.sentCount} inactivity alert email(s) to ${result.recipientCount} recipient${result.recipientCount === 1 ? '' : 's'}.`;
+    } catch {
+      this.statusMessage = 'Failed to send inactivity alert emails. Check backend logs for details.';
+    } finally {
+      this.isSendingInactivityAlerts = false;
     }
   }
 
