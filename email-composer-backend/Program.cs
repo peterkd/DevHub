@@ -21,7 +21,7 @@ builder.Services.Configure<GraphOptions>(
 builder.Services.AddScoped<GraphMailService>();
 builder.Services.AddScoped<SqlRecipientService>();
 builder.Services.AddScoped<DlnWfmAdminMailService>();
-builder.Services.AddScoped<InactivityAlertMailService>();
+builder.Services.AddScoped<ExcelSourceMailService>();
 
 var app = builder.Build();
 

@@ -255,7 +255,7 @@ describe('App', () => {
     expect(app.statusMessage).toContain('Sent 1 DLN email');
   });
 
-  it('should send inactivity alerts with the current subject and body', async () => {
+  it('should send using Excel source with the current subject and body', async () => {
     const fixture = TestBed.createComponent(App);
     const httpTesting = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
@@ -263,14 +263,14 @@ describe('App', () => {
     await fixture.whenStable();
 
     const app = fixture.componentInstance;
-    app.subject = 'Inactivity alert';
-    app.bodyHtml = '<p>Please review your account activity.</p>';
+    app.subject = 'Excel source message';
+    app.bodyHtml = '<p>Please review this message.</p>';
 
-    const sendPromise = app.sendInactivityAlerts();
-    const sendRequest = httpTesting.expectOne(`${environment.apiBaseUrl}/api/mail/send-inactivity-alerts`);
+    const sendPromise = app.sendUsingExcelSource();
+    const sendRequest = httpTesting.expectOne(`${environment.apiBaseUrl}/api/mail/send-excel-source`);
     expect(sendRequest.request.body).toEqual({
-      subject: 'Inactivity alert',
-      bodyHtml: '<p>Please review your account activity.</p>'
+      subject: 'Excel source message',
+      bodyHtml: '<p>Please review this message.</p>'
     });
     sendRequest.flush({
       recipientCount: 2,
@@ -278,7 +278,7 @@ describe('App', () => {
     });
     await sendPromise;
 
-    expect(app.statusMessage).toContain('Sent 2 inactivity alert');
+    expect(app.statusMessage).toContain('Sent 2 Excel source email');
   });
 
   it('should disable send until there is a valid manual email or selected user role', async () => {

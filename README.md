@@ -80,7 +80,7 @@ When Function, Position, Organization role, and User role are all selected, the 
 
 The DLN WFM admin send button uses the current subject and email body, reads matching company files from `C:\WFM\DLN\Import\CompaniesWithWFMAdmin`, finds active WFM Administrator recipients by company, attaches the matching company file, and sends one email per company.
 
-The inactivity alert send button uses the current subject and email body, reads `C:\WFM\Inactivity\Inactivity-alert-contractor.xlsx`, extracts recipients from the `Email` column on the `Inactivity-batch` sheet, and sends a separate email to each recipient.
+The Excel source send button uses the current subject and email body, reads `c:\icc-mailer\recipients.xlsx`, extracts recipients from the `Email` column on the `Recipients` sheet, and sends a separate email to each recipient.
 
 ### Run
 
@@ -130,11 +130,11 @@ Backend listens on `http://localhost:5000` by default via launch settings.
 }
 ```
 
-`POST /api/mail/send-inactivity-alerts`
+`POST /api/mail/send-excel-source`
 
 ```json
 {
-  "subject": "Inactivity alert",
-  "bodyHtml": "<p>Please review your account activity.</p>"
+  "subject": "Excel source message",
+  "bodyHtml": "<p>Please review this message.</p>"
 }
 ```

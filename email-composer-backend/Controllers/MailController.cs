@@ -11,18 +11,18 @@ public sealed class MailController : ControllerBase
     private readonly GraphMailService _graphMailService;
     private readonly SqlRecipientService _sqlRecipientService;
     private readonly DlnWfmAdminMailService _dlnWfmAdminMailService;
-    private readonly InactivityAlertMailService _inactivityAlertMailService;
+    private readonly ExcelSourceMailService _excelSourceMailService;
 
     public MailController(
         GraphMailService graphMailService,
         SqlRecipientService sqlRecipientService,
         DlnWfmAdminMailService dlnWfmAdminMailService,
-        InactivityAlertMailService inactivityAlertMailService)
+        ExcelSourceMailService excelSourceMailService)
     {
         _graphMailService = graphMailService;
         _sqlRecipientService = sqlRecipientService;
         _dlnWfmAdminMailService = dlnWfmAdminMailService;
-        _inactivityAlertMailService = inactivityAlertMailService;
+        _excelSourceMailService = excelSourceMailService;
     }
 
     [HttpGet("organization-roles")]
@@ -80,9 +80,9 @@ public sealed class MailController : ControllerBase
         }
     }
 
-    [HttpPost("send-inactivity-alerts")]
-    public async Task<IActionResult> SendInactivityAlertMessages(
-        [FromBody] InactivityAlertSendRequest request,
+    [HttpPost("send-excel-source")]
+    public async Task<IActionResult> SendExcelSourceMessages(
+        [FromBody] ExcelSourceSendRequest request,
         CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
@@ -92,7 +92,7 @@ public sealed class MailController : ControllerBase
 
         try
         {
-            var result = await _inactivityAlertMailService.SendAsync(request, cancellationToken);
+            var result = await _excelSourceMailService.SendAsync(request, cancellationToken);
             return Ok(result);
         }
         catch (InvalidOperationException ex)

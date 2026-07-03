@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EmailComposer.Backend.Models;
 
-public sealed class InactivityAlertSendRequest
+public sealed class ExcelSourceSendRequest
 {
     [Required]
     public string Subject { get; set; } = string.Empty;

@@ -4,10 +4,10 @@ using EmailComposer.Backend.Models;
 
 namespace EmailComposer.Backend.Services;
 
-public sealed class InactivityAlertMailService
+public sealed class ExcelSourceMailService
 {
-    private const string InactivityAlertWorkbookPath = @"C:\WFM\Inactivity\Inactivity-alert-contractor.xlsx";
-    private const string SheetName = "Inactivity-batch";
+    private const string RecipientsWorkbookPath = @"c:\icc-mailer\recipients.xlsx";
+    private const string SheetName = "Recipients";
     private const string EmailColumnName = "Email";
 
     private static readonly XNamespace SpreadsheetNamespace =
@@ -19,13 +19,13 @@ public sealed class InactivityAlertMailService
 
     private readonly GraphMailService _graphMailService;
 
-    public InactivityAlertMailService(GraphMailService graphMailService)
+    public ExcelSourceMailService(GraphMailService graphMailService)
     {
         _graphMailService = graphMailService;
     }
 
-    public async Task<InactivityAlertSendResult> SendAsync(
-        InactivityAlertSendRequest request,
+    public async Task<ExcelSourceSendResult> SendAsync(
+        ExcelSourceSendRequest request,
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.Subject) || string.IsNullOrWhiteSpace(request.BodyHtml))
@@ -40,7 +40,7 @@ public sealed class InactivityAlertMailService
                 $"No email recipients were found in sheet '{SheetName}', column '{EmailColumnName}'.");
         }
 
-        var result = new InactivityAlertSendResult
+        var result = new ExcelSourceSendResult
         {
             RecipientCount = recipients.Count
         };
@@ -64,13 +64,13 @@ public sealed class InactivityAlertMailService
 
     private static IReadOnlyList<string> ReadEmailRecipients()
     {
-        if (!File.Exists(InactivityAlertWorkbookPath))
+        if (!File.Exists(RecipientsWorkbookPath))
         {
             throw new InvalidOperationException(
-                $"Inactivity alert workbook was not found: {InactivityAlertWorkbookPath}");
+                $"Excel recipient workbook was not found: {RecipientsWorkbookPath}");
         }
 
-        using var archive = ZipFile.OpenRead(InactivityAlertWorkbookPath);
+        using var archive = ZipFile.OpenRead(RecipientsWorkbookPath);
         var sharedStrings = ReadSharedStrings(archive);
         var worksheet = ReadWorksheet(archive);
         var rows = worksheet.Root?

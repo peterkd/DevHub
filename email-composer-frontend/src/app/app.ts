@@ -32,7 +32,7 @@ export class App implements OnInit {
   bodyHtml = '';
   isSending = false;
   isSendingDlnWfmAdmins = false;
-  isSendingInactivityAlerts = false;
+  isSendingExcelSource = false;
   statusMessage = '';
 
   readonly workerFunctions = environment.WorkerFunctions;
@@ -58,8 +58,8 @@ export class App implements OnInit {
     return this.isSendingDlnWfmAdmins || !this.subject.trim() || !this.bodyHtml.trim();
   }
 
-  get isInactivityAlertSendDisabled(): boolean {
-    return this.isSendingInactivityAlerts || !this.subject.trim() || !this.bodyHtml.trim();
+  get isExcelSourceSendDisabled(): boolean {
+    return this.isSendingExcelSource || !this.subject.trim() || !this.bodyHtml.trim();
   }
 
   private get hasSelectedSqlRecipientRole(): boolean {
@@ -161,30 +161,30 @@ export class App implements OnInit {
     }
   }
 
-  async sendInactivityAlerts(): Promise<void> {
-    if (this.isInactivityAlertSendDisabled) {
+  async sendUsingExcelSource(): Promise<void> {
+    if (this.isExcelSourceSendDisabled) {
       return;
     }
 
     this.statusMessage = '';
-    this.isSendingInactivityAlerts = true;
+    this.isSendingExcelSource = true;
 
     try {
       const result = await firstValueFrom(
         this.http.post<{
           sentCount: number;
           recipientCount: number;
-        }>(`${environment.apiBaseUrl}/api/mail/send-inactivity-alerts`, {
+        }>(`${environment.apiBaseUrl}/api/mail/send-excel-source`, {
           subject: this.subject,
           bodyHtml: this.bodyHtml
         })
       );
       this.statusMessage =
-        `Sent ${result.sentCount} inactivity alert email(s) to ${result.recipientCount} recipient${result.recipientCount === 1 ? '' : 's'}.`;
+        `Sent ${result.sentCount} Excel source email(s) to ${result.recipientCount} recipient${result.recipientCount === 1 ? '' : 's'}.`;
     } catch {
-      this.statusMessage = 'Failed to send inactivity alert emails. Check backend logs for details.';
+      this.statusMessage = 'Failed to send Excel source emails. Check backend logs for details.';
     } finally {
-      this.isSendingInactivityAlerts = false;
+      this.isSendingExcelSource = false;
     }
   }
 

@@ -1,6 +1,6 @@
 namespace EmailComposer.Backend.Models;
 
-public sealed class InactivityAlertSendResult
+public sealed class ExcelSourceSendResult
 {
     public int RecipientCount { get; set; }
 

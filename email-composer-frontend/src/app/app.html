@@ -113,8 +113,8 @@
       <button type="button" (click)="sendDlnWfmAdminMail()" [disabled]="isDlnWfmAdminSendDisabled">
         {{ isSendingDlnWfmAdmins ? 'Sending DLN emails...' : 'Send DLN WFM admin emails' }}
       </button>
-      <button type="button" (click)="sendInactivityAlerts()" [disabled]="isInactivityAlertSendDisabled">
-        {{ isSendingInactivityAlerts ? 'Sending inactivity alerts...' : 'Send inactivity alerts' }}
+      <button type="button" (click)="sendUsingExcelSource()" [disabled]="isExcelSourceSendDisabled">
+        {{ isSendingExcelSource ? 'Sending Excel source emails...' : 'Send using Excel source' }}
       </button>
       <span class="status">{{ statusMessage }}</span>
     </div>
