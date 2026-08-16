@@ -1,0 +1,19 @@
+{
+  "name": "DevHub (Angular + .NET Email Composer)",
+  "user": "ubuntu",
+  "install": "bash .cursor/install.sh",
+  "terminals": [
+    {
+      "name": "backend",
+      "command": "cd email-composer-backend && ASPNETCORE_ENVIRONMENT=Development dotnet run"
+    },
+    {
+      "name": "frontend",
+      "command": "cd email-composer-frontend && NG_CLI_ANALYTICS=false npm start -- --host 0.0.0.0"
+    }
+  ],
+  "ports": [
+    { "name": "Frontend (Angular)", "port": 4200 },
+    { "name": "Backend API (.NET)", "port": 5000 }
+  ]
+}
